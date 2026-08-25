@@ -1,0 +1,17 @@
+{
+  "name": "smoke",
+  "_comment": "설정이 살아있는지 1분 안에 확인하는 용도. 결론을 내는 데 쓰지 말 것.",
+  "axis": {
+    "n_agents": [2],
+    "dep_mode": ["chain"],
+    "size": [10.0],
+    "n_obstacles": [[3, 5]],
+    "coupled_waypoints": [0.5],
+    "seeds": [0, 3]
+  },
+  "methods": ["lower_bound", "sequential", "coordination_astar", "wm_planner"],
+  "wm_config": {
+    "horizon_s": 4.0, "replan_s": 1.0, "max_modes": 8, "keep_modes": 4,
+    "k_routes": 2, "seed": 0, "time_budget_s": 60.0
+  }
+}

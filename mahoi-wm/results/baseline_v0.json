@@ -1,0 +1,140 @@
+{
+  "schema": "mahoi-wm/baseline@1",
+  "note": "v0 기준선 — 이후 모든 변경은 이 수치와 비교한다. scripts/run_wm_experiments.py 로 재생성.",
+  "config": {
+    "horizon_s": 4.0,
+    "replan_s": 1.0,
+    "max_modes": 16,
+    "keep_modes": 8,
+    "k_routes": 2,
+    "seed": 0,
+    "dt": 0.1
+  },
+  "tolerance": {
+    "team_time_abs_s": 0.5,
+    "team_time_rel": 0.05,
+    "note": "team time이 이 범위를 넘어 나빠지면 회귀로 간주한다"
+  },
+  "scenarios": {
+    "crossing2": {
+      "n_agents": 2,
+      "deps": "A->B",
+      "lower_bound": 14.3,
+      "sequential": 24.5,
+      "coordination_astar": 15.3,
+      "wm_planner": {
+        "team_time": 16.4,
+        "flow_time": 29.4,
+        "distance": 26.86,
+        "wait": 4.28,
+        "valid": true,
+        "agent_clearance": 0.922,
+        "obstacle_clearance": 0.32,
+        "dep_violations": 0,
+        "n_switches": 0,
+        "n_modes": 16
+      },
+      "ablations": {
+        "WM+P  H=8s": 16.4,
+        "WM+P  full view": 16.4,
+        "WM+P  no switching": 16.4
+      }
+    },
+    "corridor2": {
+      "n_agents": 2,
+      "deps": "A->B",
+      "lower_bound": 17.4,
+      "sequential": 32.3,
+      "coordination_astar": 26.2,
+      "wm_planner": {
+        "team_time": 18.1,
+        "flow_time": 34.4,
+        "distance": 36.69,
+        "wait": 1.5,
+        "valid": true,
+        "agent_clearance": 0.938,
+        "obstacle_clearance": 0.35,
+        "dep_violations": 0,
+        "n_switches": 3,
+        "n_modes": 16
+      },
+      "ablations": {
+        "WM+P  H=8s": 18.2,
+        "WM+P  full view": 18.2,
+        "WM+P  no switching": 18.2
+      }
+    },
+    "deadlock2": {
+      "n_agents": 2,
+      "deps": "A->B",
+      "lower_bound": 14.0,
+      "sequential": null,
+      "coordination_astar": 15.1,
+      "wm_planner": {
+        "team_time": 15.5,
+        "flow_time": 30.7,
+        "distance": 31.15,
+        "wait": 2.03,
+        "valid": true,
+        "agent_clearance": 0.921,
+        "obstacle_clearance": 0.322,
+        "dep_violations": 0,
+        "n_switches": 3,
+        "n_modes": 16
+      },
+      "ablations": {
+        "WM+P  H=8s": 15.4,
+        "WM+P  full view": 15.4,
+        "WM+P  no switching": 15.5
+      }
+    },
+    "chain3": {
+      "n_agents": 3,
+      "deps": "A->B, B->C",
+      "lower_bound": 17.9,
+      "sequential": 48.4,
+      "coordination_astar": 24.9,
+      "wm_planner": {
+        "team_time": 19.4,
+        "flow_time": 54.2,
+        "distance": 54.46,
+        "wait": 5.34,
+        "valid": true,
+        "agent_clearance": 0.746,
+        "obstacle_clearance": 0.323,
+        "dep_violations": 0,
+        "n_switches": 3,
+        "n_modes": 16
+      },
+      "ablations": {
+        "WM+P  H=8s": 19.6,
+        "WM+P  full view": 19.0,
+        "WM+P  no switching": 20.5
+      }
+    },
+    "fork3": {
+      "n_agents": 3,
+      "deps": "A->B, A->C",
+      "lower_bound": 18.1,
+      "sequential": 49.8,
+      "coordination_astar": 20.0,
+      "wm_planner": {
+        "team_time": 19.4,
+        "flow_time": 55.6,
+        "distance": 57.67,
+        "wait": 4.12,
+        "valid": true,
+        "agent_clearance": 0.934,
+        "obstacle_clearance": 0.322,
+        "dep_violations": 0,
+        "n_switches": 3,
+        "n_modes": 16
+      },
+      "ablations": {
+        "WM+P  H=8s": 19.6,
+        "WM+P  full view": 20.7,
+        "WM+P  no switching": 20.7
+      }
+    }
+  }
+}
