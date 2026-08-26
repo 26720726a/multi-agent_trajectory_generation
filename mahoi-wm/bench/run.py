@@ -39,8 +39,8 @@ from mahoi.paths import build_prior
 from mahoi.wm.execute import WMConfig, run_wm_planner
 
 FIELDS = [
-    "uid", "seed", "n_agents", "dep_mode", "size", "n_obstacles",
-    "coupled_waypoints", "method", "status", "team_time", "flow_time",
+    "uid", "instance_seed", "n_agents", "dep_mode", "size", "n_obstacles",
+    "couple_prob", "couple_dist", "method", "status", "team_time", "flow_time",
     "distance", "wait", "valid", "agent_clearance", "obstacle_clearance",
     "dep_violations", "n_switches", "runtime_s", "lower_bound", "ratio_to_bound",
     "git_commit",

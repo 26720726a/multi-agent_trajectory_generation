@@ -250,12 +250,16 @@ def get_scenario(name: str) -> Problem:
 def random_problem(seed: int, n_agents: int = 2, size: float = 10.0,
                    n_obstacles: Tuple[int, int] = (3, 5),
                    dep_mode: str = "chain",
-                   coupled_waypoints: float = 0.5) -> Problem:
+                   coupled_waypoints: float = 0.5,
+                   couple_dist: float = 0.55) -> Problem:
     """Random room + random S/W/G + a random dependency DAG.
 
     `coupled_waypoints` is the probability that two agents' waypoints are
     deliberately placed close together, which is what makes the instance
     interesting (the HOI regions then physically exclude each other).
+    `couple_dist` is how close, in metres, that pair is then placed -- the
+    *strength* of the coupling, where `coupled_waypoints` is only its *rate*.
+    The default reproduces the frozen behaviour exactly.
     """
     rng = np.random.default_rng(seed)
     radius, margin = 0.30, 0.45
@@ -300,7 +304,7 @@ def random_problem(seed: int, n_agents: int = 2, size: float = 10.0,
     if n_agents >= 2 and rng.random() < coupled_waypoints:
         i, j = rng.choice(n_agents, size=2, replace=False)
         ang = rng.uniform(0, 2 * np.pi)
-        d = 0.55
+        d = couple_dist
         cand = (wps[i][0] + d * np.cos(ang), wps[i][1] + d * np.sin(ang))
         if all(not r.inflate(radius + 0.15).contains(cand) for r in rects) and \
            radius + 0.2 < cand[0] < size - radius - 0.2 and \

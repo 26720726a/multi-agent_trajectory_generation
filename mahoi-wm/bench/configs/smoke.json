@@ -6,8 +6,10 @@
     "dep_mode": ["chain"],
     "size": [10.0],
     "n_obstacles": [[3, 5]],
-    "coupled_waypoints": [0.5],
-    "seeds": [0, 3]
+    "couple_prob": [1.0],
+    "couple_dist": [0.55],
+    "instance_seeds": {"range": [0, 3]},
+    "planner_seeds": {"range": [0, 2]}
   },
   "methods": ["lower_bound", "sequential", "coordination_astar", "wm_planner"],
   "wm_config": {

@@ -1,13 +1,15 @@
 {
   "name": "scale",
-  "_comment": "agent 수 확장 곡선. A1 이 끝나기 전에는 n>=6 에서 sample_modes 가 30초씩 잡아먹는다.",
+  "_comment": "agent 수 확장 곡선. A1 이 끝나기 전에는 n>=6 에서 sample_modes 가 30초씩 잡아먹는다. x 축이 n_agents 이므로 커플링은 확률이 아니라 고정값(1.0)으로 붙들어 둔다.",
   "axis": {
     "n_agents": [2, 3, 4, 5, 6, 7, 8],
     "dep_mode": ["chain", "fork", "none"],
     "size": [12.0],
     "n_obstacles": [[3, 5]],
-    "coupled_waypoints": [0.5],
-    "seeds": [0, 5]
+    "couple_prob": [1.0],
+    "couple_dist": [0.55],
+    "instance_seeds": {"range": [0, 5]},
+    "planner_seeds": {"range": [0, 3]}
   },
   "methods": ["lower_bound", "sequential", "coordination_astar", "wm_planner"],
   "wm_config": {
