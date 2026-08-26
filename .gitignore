@@ -18,3 +18,4 @@ Icon
 .com.apple.timemachine.donotpresent__pycache__/
 *.pyc
 .venv/
+mahoi-wm/bench/runs/
