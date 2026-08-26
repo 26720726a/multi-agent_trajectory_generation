@@ -223,3 +223,220 @@ def test_worker_strips_ros_from_the_path():
             os.environ.pop("PYTHONPATH", None)
         else:
             os.environ["PYTHONPATH"] = old_env
+
+
+# =========================================================================== #
+#  3단계 — 재개, 병렬, 검산
+# =========================================================================== #
+import csv                                                          # noqa: E402
+import multiprocessing as mp                                        # noqa: E402
+import multiprocessing.pool                                         # noqa: E402
+
+from bench.run import (INNER_WORKERS_VAR, KEY, NO_METHOD, THREAD_VARS,
+                       SchemaMismatch, _NoDaemonContext, _pool_init,
+                       audit_row_count, clean_note, describe_schema_mismatch,
+                       pending_methods, rows_per_instance, scan_existing)
+
+
+def _row(uid: str, method: str, ps: int, **kw) -> dict:
+    r = {k: "" for k in FIELDS}
+    r.update(uid=uid, method=method, planner_seed=ps, status="ok")
+    r.update(kw)
+    return r
+
+
+def _write_csv(path, rows, fields=FIELDS) -> None:
+    with open(path, "w", newline="", encoding="utf-8") as fh:
+        w = csv.DictWriter(fh, fieldnames=fields)
+        w.writeheader()
+        for r in rows:
+            w.writerow(r)
+
+
+# --------------------------------------------------------------------------- #
+#  note 는 한 줄이어야 재개가 행을 셀 수 있다
+# --------------------------------------------------------------------------- #
+def test_note_is_folded_to_one_line():
+    """줄바꿈이 남으면 한 행이 여러 줄이 되고, 재개가 잘린 행을 알아볼 수 없다."""
+    assert "\n" not in clean_note("Traceback\n  line 1\n  line 2")
+    assert clean_note("a\r\nb") == "a b"
+
+
+def test_note_is_truncated_and_never_none():
+    assert len(clean_note("x" * 500)) == NOTE_MAX
+    assert clean_note(None) == "" and clean_note("") == ""
+
+
+# --------------------------------------------------------------------------- #
+#  기존 CSV 읽기
+# --------------------------------------------------------------------------- #
+def test_scan_reads_back_every_key(tmp_path):
+    p = tmp_path / "a.csv"
+    _write_csv(p, [_row("u1", "lower_bound", 0), _row("u1", "wm_planner", 1)])
+    done, n_good, n_dropped, end = scan_existing(str(p))
+    assert done == {("u1", "lower_bound", "0"), ("u1", "wm_planner", "1")}
+    assert (n_good, n_dropped) == (2, 0)
+    assert end == p.stat().st_size          # 온전한 파일이면 끝까지가 유효하다
+
+
+def test_scan_of_a_header_only_file_is_empty(tmp_path):
+    p = tmp_path / "a.csv"
+    _write_csv(p, [])
+    assert scan_existing(str(p)) == (set(), 0, 0, p.stat().st_size)
+
+
+def test_scan_of_an_empty_file_is_empty(tmp_path):
+    p = tmp_path / "a.csv"
+    p.write_bytes(b"")
+    assert scan_existing(str(p)) == (set(), 0, 0, 0)
+
+
+def test_a_truncated_last_row_is_dropped_and_the_offset_points_before_it(tmp_path):
+    """쓰는 도중에 죽으면 마지막 줄이 잘린다.  거기 이어 쓰면 두 행이 붙는다."""
+    p = tmp_path / "a.csv"
+    _write_csv(p, [_row("u1", "lower_bound", 0), _row("u2", "wm_planner", 0)])
+    whole = p.read_bytes()
+    p.write_bytes(whole[:-12])              # 마지막 행을 자른다
+    done, n_good, n_dropped, end = scan_existing(str(p))
+    assert done == {("u1", "lower_bound", "0")}
+    assert (n_good, n_dropped) == (1, 1)
+    # 잘라낸 지점까지가 정확히 온전한 행들이다
+    assert p.read_bytes()[:end] == whole[:whole.index(b"u2")]
+
+
+def test_everything_after_a_broken_row_is_distrusted(tmp_path):
+    """깨진 지점 뒤가 멀쩡해 보여도, 왜 깨졌는지 모르는 채로 믿을 수 없다."""
+    p = tmp_path / "a.csv"
+    _write_csv(p, [_row(f"u{i}", "wm_planner", 0) for i in range(4)])
+    lines = p.read_bytes().split(b"\r\n")
+    lines[2] = b"garbage,row"               # 두 번째 데이터 행을 부순다
+    p.write_bytes(b"\r\n".join(lines))
+    done, n_good, n_dropped, _ = scan_existing(str(p))
+    assert done == {("u0", "wm_planner", "0")}
+    assert n_good == 1 and n_dropped >= 1
+
+
+def test_a_different_header_is_refused(tmp_path):
+    p = tmp_path / "a.csv"
+    _write_csv(p, [], fields=[f for f in FIELDS if f != "planner_seed"])
+    with pytest.raises(SchemaMismatch) as exc:
+        scan_existing(str(p))
+    assert "planner_seed" in str(exc.value)
+
+
+def test_the_mismatch_message_names_the_columns():
+    msg = describe_schema_mismatch(["a", "b", "seed"], ["a", "b", "planner_seed"])
+    assert "planner_seed" in msg and "seed" in msg
+
+
+def test_a_reordered_header_is_reported_as_order_not_as_missing():
+    """열 이름이 같고 순서만 다른 경우를 "빠졌다" 고 하면 엉뚱한 곳을 고치게 된다."""
+    msg = describe_schema_mismatch(["b", "a"], ["a", "b"])
+    assert "순서" in msg and "0번째" in msg
+
+
+# --------------------------------------------------------------------------- #
+#  무엇을 다시 돌릴 것인가
+# --------------------------------------------------------------------------- #
+def test_nothing_pending_when_everything_is_done():
+    done = {(TINY.uid, m, "0") for m in ALL_METHODS}
+    assert pending_methods(TINY, 0, ALL_METHODS, done) == []
+
+
+def test_only_the_missing_methods_come_back():
+    """인스턴스가 행을 쓰는 도중에 죽으면 앞쪽 method 는 이미 파일에 있다."""
+    done = {(TINY.uid, "lower_bound", "0"), (TINY.uid, "sequential", "0")}
+    assert pending_methods(TINY, 0, ALL_METHODS, done) == \
+        ["coordination_astar", "wm_planner"]
+
+
+def test_pending_respects_the_deterministic_seed_rule():
+    assert pending_methods(TINY, 1, ALL_METHODS, set()) == ["wm_planner"]
+
+
+def test_a_done_key_from_another_seed_does_not_count():
+    done = {(TINY.uid, "wm_planner", "0")}
+    assert pending_methods(TINY, 1, ALL_METHODS, done) == ["wm_planner"]
+
+
+# --------------------------------------------------------------------------- #
+#  검산
+# --------------------------------------------------------------------------- #
+def test_rows_per_instance_multiplies_only_the_stochastic_method():
+    assert rows_per_instance(ALL_METHODS, [0]) == 4
+    assert rows_per_instance(ALL_METHODS, [0, 1, 2]) == 3 + 3
+    assert rows_per_instance(["lower_bound"], [0, 1, 2]) == 1
+
+
+def test_audit_passes_on_a_complete_file(tmp_path, capsys):
+    p = tmp_path / "a.csv"
+    rows = [_row(f"u{i}", m, ps)
+            for i in range(2)
+            for m in ALL_METHODS for ps in ([0, 1] if m == "wm_planner" else [0])]
+    _write_csv(p, rows)
+    assert audit_row_count(str(p), ALL_METHODS, [0, 1], n_instances=2) is True
+
+
+def test_audit_notices_a_missing_row(tmp_path, capsys):
+    p = tmp_path / "a.csv"
+    _write_csv(p, [_row("u0", "lower_bound", 0)])
+    assert audit_row_count(str(p), ALL_METHODS, [0, 1], n_instances=2) is False
+    assert "기대" in capsys.readouterr().err
+
+
+def test_audit_notices_a_duplicated_row(tmp_path, capsys):
+    """재개가 이미 끝난 것을 또 돌리면 분자와 분모가 같이 부푼다."""
+    p = tmp_path / "a.csv"
+    _write_csv(p, [_row("u0", "lower_bound", 0)] * 2)
+    assert audit_row_count(str(p), ALL_METHODS, [0], n_instances=1) is False
+    assert "겹치는 행" in capsys.readouterr().err
+
+
+def test_ungeneratable_instances_are_excluded_from_the_expectation(tmp_path):
+    """생성 실패는 method 와 무관하게 한 줄만 남긴다 — 기대치에서 덜어내야 한다."""
+    p = tmp_path / "a.csv"
+    rows = [_row("good", m, ps)
+            for m in ALL_METHODS for ps in ([0, 1] if m == "wm_planner" else [0])]
+    rows.append(_row("bad", NO_METHOD, 0, status="ungeneratable"))
+    _write_csv(p, rows)
+    assert audit_row_count(str(p), ALL_METHODS, [0, 1], n_instances=2) is True
+
+
+# --------------------------------------------------------------------------- #
+#  워커가 실제로 어떤 환경에서 도는가
+# --------------------------------------------------------------------------- #
+def _probe(_):
+    return {"threads": {v: os.environ.get(v) for v in THREAD_VARS},
+            "inner": os.environ.get(INNER_WORKERS_VAR),
+            "ros": [p for p in sys.path if p.startswith(ROS_PREFIX)],
+            "daemon": mp.current_process().daemon}
+
+
+def test_pool_workers_are_pinned_and_ros_free():
+    """조건 6 — 워커 안에서 스레드가 묶여 있고 /opt/ros 가 없다."""
+    pool = mp.pool.Pool(2, initializer=_pool_init, initargs=(3,),
+                        context=_NoDaemonContext())
+    try:
+        got = pool.map(_probe, range(2))
+    finally:
+        pool.close()
+        pool.join()
+    for g in got:
+        assert all(g["threads"][v] == "1" for v in THREAD_VARS), g["threads"]
+        assert g["inner"] == "3"
+        assert g["ros"] == []
+
+
+def test_pool_workers_may_have_children():
+    """daemon 워커는 자식을 못 만든다 — 그러면 2단계의 하드 타임아웃이 죽는다."""
+    pool = mp.pool.Pool(1, initializer=_pool_init, initargs=(1,),
+                        context=_NoDaemonContext())
+    try:
+        assert pool.map(_probe, [0])[0]["daemon"] is False
+    finally:
+        pool.close()
+        pool.join()
+
+
+def test_key_columns_exist_in_the_schema():
+    assert set(KEY) <= set(FIELDS)

@@ -41,18 +41,38 @@ import argparse
 import csv
 import json
 import multiprocessing as mp
+import multiprocessing.pool
 import os
 import queue
 import signal
 import subprocess
 import sys
 import time
-from typing import Dict, List, Optional, Sequence, Tuple
+from typing import Dict, Iterable, List, Optional, Sequence, Set, Tuple
+
+#: BLAS/OpenMP 는 **import 시점에** 코어 수만큼 스레드 풀을 만든다.  워커마다 그게
+#: 생기면 `--workers N` 은 N배 빨라지는 대신 N×코어 개의 스레드가 서로를 밀어내
+#: 오히려 느려진다.  그래서 numpy 가 딸려 오는 아래 mahoi import 보다 **위에서**
+#: 묶는다 — 나중에 환경변수를 고쳐봐야 이미 만들어진 풀은 줄지 않는다.
+#:
+#: spawn 워커도 이 모듈을 다시 import 하며 이 줄을 지나므로 같은 보장을 받는다.
+#: fork 워커는 이미 묶인 부모를 물려받는다.  `_pool_init` 이 한 번 더 세우는 것은
+#: 확인용이지 이 줄을 대신하지는 못한다.
+THREAD_VARS = ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS",
+               "NUMEXPR_NUM_THREADS", "VECLIB_MAXIMUM_THREADS")
+for _v in THREAD_VARS:
+    os.environ[_v] = "1"
+
+#: Track A(A3) 가 rollout 을 자기 Pool 로 병렬화할 때 읽기로 한 변수.  바깥(B)과
+#: 안쪽(A) 이 각자 코어 수만큼 프로세스를 만들면 곱해져서 코어를 초과 구독하고,
+#: 최악에는 서로의 완료를 기다리며 멈춘다.  바깥이 몇 개를 쓰는지 아는 쪽은
+#: 여기뿐이므로 안쪽 몫을 여기서 정해 내려보낸다.  기본 1 = 안쪽은 병렬화하지 않는다.
+INNER_WORKERS_VAR = "MAHOI_INNER_WORKERS"
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from bench.generate import (STOCHASTIC_METHODS, Axis, Instance,
-                            axis_from_config, buildable, grid)
+                            axis_from_config, buildable, expected_count, grid)
 from mahoi import validate as V
 from mahoi.coordination import (critical_path_bound, plan_coordination,
                                 plan_sequential)
@@ -77,6 +97,15 @@ FIELDS = [
 #: note 열의 상한.  자유 텍스트라 길이를 안 막으면 CSV 한 줄이 화면을 덮는다.
 NOTE_MAX = 120
 
+
+def clean_note(text: object) -> str:
+    """note 를 한 줄로 접고 자른다.
+
+    줄바꿈을 그대로 두면 CSV 한 행이 여러 줄이 되고, 그러면 재개가 "잘린 마지막
+    행" 을 줄 단위로 알아볼 수 없게 된다.  예외 메시지에는 줄바꿈이 흔하다.
+    """
+    return " ".join(str(text or "").split())[:NOTE_MAX]
+
 #: `chosen_is_fastest_feasible` 의 허용 오차.  check_wm.py 의 "(same)" 판정과
 #: 같은 값이어야 두 리포트가 서로를 검산할 수 있다.
 MAKESPAN_TOL = 1e-6
@@ -85,6 +114,9 @@ MAKESPAN_TOL = 1e-6
 #: 프로젝트의 것을 가리면(대표적으로 yaml) 자식은 import 단계에서 죽고, 그 죽음은
 #: "인스턴스가 어렵다" 와 구별되지 않는다.  워커는 항상 이걸 먼저 턴다.
 ROS_PREFIX = "/opt/ros"
+
+_BASE_CTX = mp.get_context(
+    "fork" if "fork" in mp.get_all_start_methods() else "spawn")
 
 #: fork 는 이미 import 된 모듈을 물려받아 인스턴스당 재기동 비용이 없다.  이
 #: 파일은 워커를 띄우기 전에 스레드를 만들지 않으므로 fork 가 안전하다.
@@ -261,7 +293,7 @@ def run_instance(inst: Instance, wm_cfg: Dict, methods: List[str], commit: str,
             return []
         r = _blank(inst, "-", None, commit, planner_seed, timeout_s)
         r["status"] = f"no_prior:{type(exc).__name__}"
-        r["note"] = str(exc)[:NOTE_MAX]
+        r["note"] = clean_note(exc)
         return [r]
 
     rows: List[Dict[str, object]] = []
@@ -283,7 +315,7 @@ def run_instance(inst: Instance, wm_cfg: Dict, methods: List[str], commit: str,
                 r["status"] = "no_solution"
         except Exception as exc:                         # noqa: BLE001
             r["status"] = f"error:{type(exc).__name__}"
-            r["note"] = str(exc)[:NOTE_MAX]
+            r["note"] = clean_note(exc)
         rows.append(r)
 
     if "coordination_astar" in todo:
@@ -303,7 +335,7 @@ def run_instance(inst: Instance, wm_cfg: Dict, methods: List[str], commit: str,
                 r["status"] = "skipped:lattice_too_large"
             except Exception as exc:                     # noqa: BLE001
                 r["status"] = f"error:{type(exc).__name__}"
-                r["note"] = str(exc)[:NOTE_MAX]
+                r["note"] = clean_note(exc)
         rows.append(r)
 
     if "wm_planner" in todo:
@@ -316,12 +348,12 @@ def run_instance(inst: Instance, wm_cfg: Dict, methods: List[str], commit: str,
             r["n_switches"] = res.n_switches
             r.update(wm_mode_stats(res))
             # B6 이 분류할 재료.  "livelock" / "wall-clock" 등이 들어 있다.
-            r["note"] = (res.note or "")[:NOTE_MAX]
+            r["note"] = clean_note(res.note)
             if not res.traj.feasible:
                 r["status"] = f"unfinished:{res.note or 'unknown'}"[:60]
         except Exception as exc:                         # noqa: BLE001
             r["status"] = f"error:{type(exc).__name__}"
-            r["note"] = str(exc)[:NOTE_MAX]
+            r["note"] = clean_note(exc)
         rows.append(r)
 
     return rows
@@ -467,9 +499,162 @@ def run_instance_guarded(inst: Instance, wm_cfg: Dict, methods: List[str],
     rows = []
     for m in todo:
         r = _blank(inst, m, None, commit, planner_seed, timeout_s)
-        r.update(status=status, runtime_s=round(elapsed, 3), note=note[:NOTE_MAX])
+        r.update(status=status, runtime_s=round(elapsed, 3), note=clean_note(note))
         rows.append(r)
     return rows
+
+
+# --------------------------------------------------------------------------- #
+#  재개 — 기존 CSV 를 읽어 "이미 끝난 것" 을 알아낸다
+# --------------------------------------------------------------------------- #
+#: 행 하나를 가리키는 열쇠.  분석은 uid 로 짝을 짓고, 한 인스턴스 안에서는
+#: method 와 planner_seed 가 행을 가른다.  이 셋이 곧 "작업 단위" 다.
+KEY = ("uid", "method", "planner_seed")
+
+#: `buildable()` 이 실패했거나 prior 를 못 만든 인스턴스가 남기는 method 이름.
+#: method 와 무관한 실패이므로 한 줄만 남고, 재개할 때도 통째로 건너뛴다.
+NO_METHOD = "-"
+
+
+class SchemaMismatch(RuntimeError):
+    """기존 CSV 의 헤더가 지금의 FIELDS 와 다르다."""
+
+
+def _key(row: Dict[str, str]) -> Tuple[str, str, str]:
+    return tuple(str(row.get(k, "")) for k in KEY)          # type: ignore[return-value]
+
+
+def _parse_line(raw: bytes) -> Optional[List[str]]:
+    try:
+        return next(csv.reader([raw.decode("utf-8")]))
+    except (UnicodeDecodeError, StopIteration, csv.Error):
+        return None
+
+
+def describe_schema_mismatch(found: Sequence[str], want: Sequence[str]) -> str:
+    """어느 열이 어떻게 다른지 사람이 읽을 수 있게 적는다.
+
+    "헤더가 다르다" 만으로는 무엇을 해야 할지 알 수 없다.  빠진 열·남는 열·순서만
+    다른 경우를 구분해서 보여준다.
+    """
+    missing = [c for c in want if c not in found]
+    extra = [c for c in found if c not in want]
+    lines = [f"  기존 {len(found)}열, 현재 FIELDS {len(want)}열"]
+    if missing:
+        lines.append(f"  현재에만 있는 열 (기존 CSV 에 없음): {missing}")
+    if extra:
+        lines.append(f"  기존에만 있는 열 (지금은 안 씀):     {extra}")
+    if not missing and not extra:
+        lines.append("  열 이름은 같고 **순서**가 다르다:")
+        for i, (a, b) in enumerate(zip(found, want)):
+            if a != b:
+                lines.append(f"    {i}번째: 기존 {a!r} != 현재 {b!r}")
+    return "\n".join(lines)
+
+
+def scan_existing(path: str, fields: Sequence[str] = FIELDS
+                  ) -> Tuple[Set[Tuple[str, str, str]], int, int, int]:
+    """기존 CSV 에서 완료된 열쇠를 읽는다.
+
+    반환 `(done, n_good, n_dropped, good_end)`.  `good_end` 는 **마지막 온전한
+    행이 끝나는 바이트 위치**다.  쓰는 도중에 죽으면 마지막 줄이 잘린 채 남는데,
+    거기에 그냥 이어 쓰면 잘린 줄과 새 줄이 한 줄로 붙어 CSV 가 조용히 망가진다.
+    그래서 호출부는 이 위치까지 파일을 잘라내고 append 한다.
+
+    첫 번째로 깨진 줄에서 멈춘다.  그 뒤의 줄은 온전해 보여도 믿지 않는다 —
+    깨진 지점 뒤를 신뢰하려면 무엇이 왜 깨졌는지 알아야 하는데, 모른다.
+
+    `note` 는 `clean_note()` 가 한 줄로 접어 두므로 "한 줄 == 한 행" 이 성립한다.
+    """
+    with open(path, "rb") as fh:
+        raw = fh.read()
+    lines = raw.splitlines(keepends=True)
+    if not lines:
+        return set(), 0, 0, 0
+
+    header = _parse_line(lines[0])
+    if header != list(fields):
+        raise SchemaMismatch(describe_schema_mismatch(header or [], fields))
+
+    done: Set[Tuple[str, str, str]] = set()
+    good_end, n_good = len(lines[0]), 0
+    for i, ln in enumerate(lines[1:], start=1):
+        row = _parse_line(ln) if ln.endswith((b"\r\n", b"\n")) else None
+        if row is None or len(row) != len(fields):
+            return done, n_good, len(lines) - i, good_end
+        done.add(_key(dict(zip(fields, row))))
+        good_end += len(ln)
+        n_good += 1
+    return done, n_good, 0, good_end
+
+
+# --------------------------------------------------------------------------- #
+#  작업 단위
+# --------------------------------------------------------------------------- #
+def pending_methods(inst: Instance, planner_seed: int, methods: Sequence[str],
+                    done: Set[Tuple[str, str, str]],
+                    deterministic_seed: int = 0) -> List[str]:
+    """이 (인스턴스, planner_seed) 에서 **아직 안 끝난** method.
+
+    재개를 method 단위로 보는 이유: 인스턴스 하나가 여러 행을 쓰는 도중에 죽으면
+    앞쪽 method 는 이미 파일에 있다.  단위를 인스턴스로 잡으면 그걸 다시 돌려
+    같은 행을 두 번 쓰게 된다.
+    """
+    ps = str(planner_seed)
+    return [m for m in methods_for_seed(methods, planner_seed, deterministic_seed)
+            if (inst.uid, m, ps) not in done]
+
+
+def _pool_init(inner_workers: int) -> None:
+    """Pool 워커의 첫 숨.
+
+    * `/opt/ros` 를 판다.  fork 면 부모에서 이미 털렸지만 spawn 이면 아니다 —
+      물려받으면 import 단계에서 죽고, 그 죽음은 "인스턴스가 어렵다" 와 구별되지
+      않는다.  initializer 로 명시하는 편이 시작 방식에 안 기댄다.
+    * 스레드 수를 다시 못 박는다 (모듈 상단 참조).
+    * Track A 에게 안쪽 몫을 알린다.
+    * SIGINT 를 무시한다.  Ctrl-C 는 부모가 받아서 정리해야 한다 — 워커가 같이
+      받으면 트레이스백 N개가 쏟아지고 부모의 정리 순서가 엉킨다.
+    """
+    strip_ros_paths()
+    for var in THREAD_VARS:
+        os.environ[var] = "1"
+    os.environ[INNER_WORKERS_VAR] = str(inner_workers)
+    signal.signal(signal.SIGINT, signal.SIG_IGN)
+
+
+#: Pool 워커는 기본이 daemon 이고, daemon 프로세스는 자식을 만들 수 없다
+#: ("daemonic processes are not allowed to have children").  그런데 2단계의 하드
+#: 타임아웃은 인스턴스마다 손자 프로세스를 띄워 죽이는 방식이다 — `sample_modes()`
+#: 가 3천만 조합을 만드는 동안에는 파이썬 레벨에서 끼어들 지점이 없어서, 프로세스를
+#: 죽이는 것 말고는 확실한 방법이 없다.  그래서 워커의 daemon 을 끈다.
+#:
+#: 대가: 부모가 SIGKILL 로 죽으면 워커가 고아로 남는다.  Ctrl-C 와 정상 종료는
+#: `pool.terminate()` / `pool.join()` 이 거둔다.
+class _NoDaemonProcess(_BASE_CTX.Process):                   # type: ignore[name-defined]
+    @property
+    def daemon(self) -> bool:
+        return False
+
+    @daemon.setter
+    def daemon(self, value: bool) -> None:
+        pass
+
+
+class _NoDaemonContext(type(_BASE_CTX)):                     # type: ignore[misc]
+    Process = _NoDaemonProcess
+
+
+def _run_unit(task):
+    """Pool 에 넘어가는 작업 하나.  인자·반환값이 전부 picklable 해야 한다."""
+    inst, wm_cfg, methods, commit, ps, timeout_s, det_seed = task
+    try:
+        rows = run_instance_guarded(inst, wm_cfg, methods, commit,
+                                    planner_seed=ps, timeout_s=timeout_s,
+                                    deterministic_seed=det_seed)
+        return inst, ps, rows, None
+    except BaseException as exc:                             # noqa: BLE001
+        return inst, ps, [], f"{type(exc).__name__}: {exc}"
 
 
 # --------------------------------------------------------------------------- #
@@ -491,6 +676,52 @@ def planner_seeds_of(axes: Sequence[Axis]) -> Tuple[int, ...]:
     return per_block[0] if per_block else (0,)
 
 
+def rows_per_instance(methods: Sequence[str], planner_seeds: Sequence[int]) -> int:
+    """`buildable()` 이 성공한 인스턴스 하나가 남겨야 할 행 수.
+
+    결정론적 method 는 한 번, 확률적 method 는 planner_seed 마다 한 번.
+    """
+    det = sum(1 for m in ALL_METHODS
+              if m in methods and m not in STOCHASTIC_METHODS)
+    stoch = sum(1 for m in ALL_METHODS
+                if m in methods and m in STOCHASTIC_METHODS)
+    return det + stoch * len(planner_seeds)
+
+
+def audit_row_count(path: str, methods: Sequence[str],
+                    planner_seeds: Sequence[int], n_instances: int) -> bool:
+    """최종 CSV 행 수가 기대치와 맞는가.
+
+    `buildable()` 이 실패한 인스턴스는 method 와 무관하게 한 줄만 남기므로,
+    그 수를 세어 기대치에서 덜어낸다.  맞지 않으면 어딘가에서 행이 사라졌거나
+    두 번 쓰였다는 뜻이고, 둘 다 성공률을 조용히 틀리게 만든다.
+    """
+    with open(path, newline="", encoding="utf-8") as fh:
+        rows = list(csv.DictReader(fh))
+    n_bad = len({r["uid"] for r in rows if r["method"] == NO_METHOD})
+    want = (n_instances - n_bad) * rows_per_instance(methods, planner_seeds) + n_bad
+    got = len(rows)
+    dupes = len(rows) - len({_key(r) for r in rows})
+    print(f"\n검산: {got} rows (기대 {want})"
+          f"  = (인스턴스 {n_instances} - 생성실패 {n_bad}) x "
+          f"{rows_per_instance(methods, planner_seeds)} + {n_bad}")
+    if dupes:
+        print(f"[bench.run] 경고: (uid, method, planner_seed) 가 겹치는 행 {dupes}건. "
+              f"재개가 이미 끝난 것을 다시 돌렸다는 뜻이다.", file=sys.stderr)
+    if got != want:
+        print(f"[bench.run] 경고: 행 수가 기대치와 다르다 ({got} != {want}). "
+              f"중간에 죽었다면 다시 실행하면 채워진다.", file=sys.stderr)
+        return False
+    return not dupes
+
+
+def _hms(seconds: float) -> str:
+    seconds = max(0.0, seconds)
+    h, rem = divmod(int(seconds), 3600)
+    m, sec = divmod(rem, 60)
+    return f"{h:d}:{m:02d}:{sec:02d}" if h else f"{m:d}:{sec:02d}"
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--config", required=True)
@@ -500,6 +731,13 @@ def main() -> None:
     ap.add_argument("--timeout", type=float, default=300.0,
                     help="인스턴스 하나의 하드 상한(초).  넘기면 자식을 죽이고 "
                          "status=timeout 행을 남긴다 (기본 300)")
+    ap.add_argument("--workers", type=int, default=max(1, (os.cpu_count() or 2) - 1),
+                    help="인스턴스를 나눠 돌릴 프로세스 수 (기본: 코어 수 - 1)")
+    ap.add_argument("--inner-workers", type=int, default=1,
+                    help=f"워커 안쪽(Track A rollout) 이 쓸 프로세스 수. "
+                         f"{INNER_WORKERS_VAR} 로 전달된다 (기본 1 = 병렬화 안 함)")
+    ap.add_argument("--fresh", action="store_true",
+                    help="기존 출력 파일을 이어받지 않고 덮어쓴다")
     args = ap.parse_args()
 
     strip_ros_paths()
@@ -510,7 +748,7 @@ def main() -> None:
     methods = cfg.get("methods", list(ALL_METHODS))
     wm_cfg, ignored_seed = wm_config_without_seed(cfg.get("wm_config", {}))
     planner_seeds = planner_seeds_of(axes)
-    deterministic_seed = planner_seeds[0]
+    det_seed = planner_seeds[0]
 
     if ignored_seed is not None:
         print(f'[bench.run] 경고: wm_config 의 "seed": {ignored_seed} 를 무시한다. '
@@ -522,40 +760,109 @@ def main() -> None:
     commit = git_commit()
 
     insts = list(grid(axes))
+    n_grid = expected_count(axes)
+    if len(insts) != n_grid:
+        print(f"[bench.run] 알림: 격자가 겹쳐 {n_grid - len(insts)}개가 합쳐졌다 "
+              f"(축의 곱 {n_grid} -> 인스턴스 {len(insts)}).", file=sys.stderr)
     if args.limit:
         insts = insts[:args.limit]
-    total = len(insts) * len(planner_seeds)
-    det = [m for m in ALL_METHODS if m in methods and m not in STOCHASTIC_METHODS]
-    print(f"{cfg.get('name', 'run')}: {len(insts)} instances x "
-          f"{len(planner_seeds)} planner seeds = {total} runs  (commit {commit})\n"
-          f"  방법 {methods}\n"
-          f"  결정론적 {det} 는 planner_seed={deterministic_seed} 에서만 돈다\n"
-          f"  하드 타임아웃 {args.timeout:g}s / 인스턴스\n-> {out}\n", flush=True)
 
+    # -- 재개 --------------------------------------------------------------- #
+    done: Set[Tuple[str, str, str]] = set()
+    resuming = os.path.exists(out) and not args.fresh
+    if resuming:
+        try:
+            done, n_good, n_dropped, good_end = scan_existing(out)
+        except SchemaMismatch as exc:
+            print(f"\n기존 CSV 의 헤더가 지금의 FIELDS 와 다르다: {out}\n{exc}\n\n"
+                  f"스키마가 섞인 CSV 는 나중에 분석할 수 없다.  다른 --out 을 쓰거나, "
+                  f"기존 결과를 버려도 된다면 --fresh 를 붙인다.", file=sys.stderr)
+            raise SystemExit(2)
+        if n_dropped:
+            print(f"[bench.run] 기존 CSV 의 마지막 {n_dropped}행이 잘려 있어 버린다 "
+                  f"(쓰는 도중에 죽은 흔적).  해당 조합은 다시 돌린다.",
+                  file=sys.stderr)
+            with open(out, "r+b") as fh:
+                fh.truncate(good_end)
+        print(f"재개: {out} 에서 {n_good}행을 이어받는다.")
+    elif os.path.exists(out):
+        print(f"--fresh: {out} 를 덮어쓴다 ({os.path.getsize(out)} bytes 를 버린다).")
+
+    tasks = [(inst, wm_cfg, todo, commit, ps, args.timeout, det_seed)
+             for inst in insts for ps in planner_seeds
+             if (inst.uid, NO_METHOD, str(det_seed)) not in done
+             and (todo := pending_methods(inst, ps, methods, done, det_seed))]
+
+    total_units = len(insts) * len(planner_seeds)
+    workers = max(1, args.workers)
+    det = [m for m in ALL_METHODS if m in methods and m not in STOCHASTIC_METHODS]
+    print(f"{cfg.get('name', 'run')}: 격자 {n_grid}, 인스턴스 {len(insts)} x "
+          f"{len(planner_seeds)} planner seeds = {total_units} units\n"
+          f"  기존 완료 {total_units - len(tasks)} units, 이번 실행 대상 "
+          f"{len(tasks)} units\n"
+          f"  방법 {methods}\n"
+          f"  결정론적 {det} 는 planner_seed={det_seed} 에서만 돈다\n"
+          f"  워커 {workers} (안쪽 {args.inner_workers}), "
+          f"하드 타임아웃 {args.timeout:g}s / 인스턴스\n"
+          f"  commit {commit}\n-> {out}\n", flush=True)
+
+    if not tasks:
+        print("0 remaining — 이미 다 끝났다.")
+        audit_row_count(out, methods, planner_seeds, len(insts))
+        return
+
+    os.environ[INNER_WORKERS_VAR] = str(args.inner_workers)
+    mode = "a" if resuming and os.path.exists(out) else "w"
     t_start = time.perf_counter()
-    n_rows = 0
-    with open(out, "w", newline="", encoding="utf-8") as fh:
+    n_done = n_rows = 0
+    interrupted = False
+
+    with open(out, mode, newline="", encoding="utf-8") as fh:
         w = csv.DictWriter(fh, fieldnames=FIELDS)
-        w.writeheader()
-        k = 0
-        for inst in insts:
-            for ps in planner_seeds:
-                k += 1
-                t0 = time.perf_counter()
-                rows = run_instance_guarded(
-                    inst, wm_cfg, methods, commit, planner_seed=ps,
-                    timeout_s=args.timeout, deterministic_seed=deterministic_seed)
+        if mode == "w" or fh.tell() == 0:
+            w.writeheader()
+            fh.flush()
+
+        pool = mp.pool.Pool(workers, initializer=_pool_init,
+                            initargs=(args.inner_workers,),
+                            context=_NoDaemonContext())
+        try:
+            for inst, ps, rows, err in pool.imap_unordered(_run_unit, tasks):
+                n_done += 1
                 for r in rows:
                     w.writerow(r)
                     n_rows += 1
-                fh.flush()                # 중간에 죽어도 여기까지는 남는다
+                fh.flush()               # 결과가 오는 대로 즉시 durable 하게
+
+                elapsed = time.perf_counter() - t_start
+                eta = elapsed / n_done * (len(tasks) - n_done)
+                if err:                  # 워커 자체가 무너진 경우 (행이 없다)
+                    print(f"[bench.run] 워커 실패: {inst.uid} ps={ps}: {err}",
+                          file=sys.stderr, flush=True)
                 wm = next((r for r in rows if r["method"] == "wm_planner"), None)
                 tag = (f"{wm['team_time']}s {wm['status']}" if wm
-                       else (rows[0]["status"] if rows else "-"))
-                print(f"  [{k:>4}/{total}] {inst.uid:<34} ps={ps} {tag}"
-                      f"   ({time.perf_counter() - t0:.1f}s)", flush=True)
+                       else (rows[0]["status"] if rows else f"실패:{err}"))
+                # 병렬이라 줄 순서가 뒤섞인다.  uid 를 항상 실어 어느 인스턴스의
+                # 이야기인지 한 줄만 보고 알 수 있게 한다.
+                print(f"  [{n_done:>5}/{len(tasks)}] {inst.uid:<34} ps={ps} "
+                      f"{tag:<24} {_hms(elapsed)} 경과, 남은 ~{_hms(eta)}",
+                      flush=True)
+            pool.close()
+        except KeyboardInterrupt:
+            interrupted = True
+            print("\n중단 (Ctrl-C).  워커를 정리한다...", file=sys.stderr, flush=True)
+            pool.terminate()
+        finally:
+            pool.join()
 
-    print(f"\n완료: {time.perf_counter() - t_start:.1f}s, {n_rows} rows  ->  {out}")
+    dt = time.perf_counter() - t_start
+    if interrupted:
+        print(f"\n중단: {n_done}/{len(tasks)} units, {n_rows} rows 를 {out} 에 남겼다. "
+              f"({_hms(dt)})\n같은 명령을 다시 실행하면 남은 것만 돈다.")
+        raise SystemExit(130)
+
+    print(f"\n완료: {_hms(dt)}, {n_done} units / {n_rows} rows  ->  {out}")
+    audit_row_count(out, methods, planner_seeds, len(insts))
     print(f"분석: python -m bench.analyze --csv {out}")
 
 
