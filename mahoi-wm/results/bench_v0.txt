@@ -1,0 +1,101 @@
+Mahoi-WM bench report   csv=difficulty.csv  commit=2개 섞임  rows=8100
+
+  경고: 한 CSV 에 커밋이 2개 섞여 있다. 배치 도중 코드가 바뀌었다는 뜻이므로,
+        아래 숫자는 단일 버전의 성능이 아니다.
+          ada8a46  6462 rows
+          f7b5d24  1638 rows
+
+[1] 방법별 요약
+  ratio = team_time / lower_bound.  평균이 아니라 분위수로 적는다 —
+  평균은 chain3 의 19.4/19.5/25.2 를 21.4 하나로 뭉개 튐을 숨긴다.
+method                  n   성공률 ratio p50     p25     p75    최악   cpu(s)
+-----------------------------------------------------------------------------
+lower_bound          1620  100.0 %     1.000   1.000   1.000   1.000     0.00
+sequential           1620   41.7 %     1.792   1.580   2.198   3.434     0.01
+wm_planner           4860   87.8 %     1.058   1.028   1.101   1.973     2.72
+  ratio 결측으로 분포에서 뺀 ok 행: 0
+
+[2] 난이도 축별 성공률  (축: n_agents)
+  어디서 무너지는가.  이 표가 논문의 '적용 범위' 문장이 된다.
+method               n_agents      n   성공률 ratio p50
+-------------------------------------------------------
+lower_bound                 2    540  100.0 %     1.000
+lower_bound                 3    540  100.0 %     1.000
+lower_bound                 4    540  100.0 %     1.000
+sequential                  2    540   75.0 %     1.633
+sequential                  3    540   37.0 %     2.219
+sequential                  4    540   13.0 %     2.888
+wm_planner                  2   1620   93.4 %     1.044
+wm_planner                  3   1620   87.7 %     1.058
+wm_planner                  4   1620   82.4 %     1.080
+
+[3] 플래너 시드 편차  — A4 의 계기판
+  같은 문제를 놓고 planner_seed 만 바꿨을 때 team_time 이 얼마나 흔들리나.
+  기준선: chain3 에서 2.71s (results/check_wm_v0.txt), A4 목표 0.5s 이하
+  표준편차는 모집단 기준(ddof=0) — check_wm.py 의 2.71s 와 같은 계산이다.
+  n_agents      n   sd p50   sd p90  sd 최대
+--------------------------------------------
+         2    492     0.05     0.22     2.11
+         3    449     0.08     0.48     3.42
+         4    396     0.12     0.52     6.18
+    (전체)   1337     0.08     0.41     6.18
+
+  편차 상위 5 — Track A 가 재현할 대상
+    n4_chain_e8800682                  sd=6.18s  n_agents=4
+    n3_none_62446721                   sd=3.42s  n_agents=3
+    n4_chain_289ecfa3                  sd=2.74s  n_agents=4
+    n3_fork_4a06581f                   sd=2.73s  n_agents=3
+    n3_none_255de7e6                   sd=2.60s  n_agents=3
+  일부 시드만 성공한 인스턴스: 160  (편차가 아니라 성공률 문제이므로 위 분포에서 뺐다)
+  모든 시드가 실패한 인스턴스: 123
+
+[4] 짝지은 비교  (wm_planner - baseline, 같은 uid)
+  독립 평균 비교는 인스턴스 난이도 편차에 묻힌다.  같은 문제끼리만 뺀다.
+  wm_planner 가 planner_seed 여러 개면 그 인스턴스의 team_time
+  **중앙값**을 대표값으로 쓴다.
+  양쪽 다 status=ok 인 쌍만 센다.
+baseline               쌍     승/무/패  Δ 중앙(s)    Δ p25    Δ p75
+-------------------------------------------------------------------
+lower_bound          1497    6/97/1394       0.80     0.40     1.40
+sequential            636      636/0/0      -9.20   -15.00    -5.87
+  승 = wm_planner 가 더 빠름.
+
+  coordination_astar 대비 — 유일한 **최적** baseline 이므로,
+  '최적 대비 몇 % 손해' 는 여기서만 나온다.
+    해당 없음 (CSV 에 coordination_astar 행이 없다)
+
+[5] 실패 분해
+  (method, status) x 난이도 축.  재현용 uid 가 Track A 의 작업 목록이다.
+  status 는 알파벳순으로 고정한다.
+method             status                                 n_agents      n 재현 uid (최대 3)                       
+------------------------------------------------------------------------------------------------------------------
+sequential         no_solution                                   2    135 n2_chain_0527f852 n2_chain_075fa377 n2_chain_07fc2cfc
+sequential         no_solution                                   3    340 n3_chain_0347f435 n3_chain_054a5287 n3_chain_0a4bdf71
+sequential         no_solution                                   4    470 n4_chain_008ef820 n4_chain_0155053b n4_chain_01ff39db
+wm_planner         unfinished:livelock: no team progress         2    107 n2_chain_075fa377 n2_chain_0aa03d00 n2_chain_281b17fc
+wm_planner         unfinished:livelock: no team progress         3    199 n3_chain_0a4bdf71 n3_chain_18393a96 n3_chain_278f31e8
+wm_planner         unfinished:livelock: no team progress         4    285 n4_chain_08548daa n4_chain_085ea179 n4_chain_0f91ce4e
+
+  자원 한계 — 방법의 실패가 아니다.  성공률과 섞어 읽지 말 것.
+    해당 없음
+
+[6] cost 항이 선택에 관여했는가  — B2
+  chosen_is_fastest_feasible=False 는 soft 항 6개가 makespan 을 사고
+  다른 것을 샀다는 뜻이다.  다만 비율만으로는 '선택을 바꿨다' 와
+  '거의 동점이라 반올림 수준 차이가 승부를 갈랐다' 가 구별되지 않는다.
+  해석 기준: 손실이 전부 수 ms 수준이면 그 6개 항은 실질적으로
+  동점 처리기이며, 그것은 '검증되지 않았다' 보다 강한 결론이다.
+  n_agents  판정된 행    False   관여율
+---------------------------------------
+         2       1620      101    6.2 %
+         3       1620      136    8.4 %
+         4       1620      221   13.6 %
+    (전체)       4860      458    9.4 %
+
+  False 인 행의 makespan 손실 (chosen - fastest)
+    산출 불가 — CSV 에 'makespan_loss_s' 열이 없다.
+    chosen_is_fastest_feasible 은 참/거짓만 말하므로,
+    손실이 6ms 인지 6s 인지 이 CSV 만으로는 알 수 없다.
+    run.py 가 그 차이를 행에 적어야 채워진다.
+
+8100 rows: wm_planner 87.8 % 성공, ratio p50 1.058, 시드 편차 p90 0.41s, cost 항 관여 9.4 % (손실 미기록)
