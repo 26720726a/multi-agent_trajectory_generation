@@ -342,20 +342,59 @@ def _others_xy(tracks: List[AgentTrack], profiles: Dict[int, np.ndarray],
     return np.stack([tracks[o].pts[_pad(profiles[o], T)] for o in planned], axis=1)
 
 
+def _sequential_others(tracks: List[AgentTrack], profiles: Dict[int, np.ndarray],
+                       me: int, n: int) -> Tuple[List[int], np.ndarray]:
+    """`me` 를 뺀 **전원**의 시간별 위치.  순차 baseline 전용.
+
+    이미 계획된 agent 는 실제 궤적을 쓰고, **아직 계획되지 않은 agent 는 출발선에
+    선 채로** 둔다.  후자가 이 함수의 존재 이유다.
+
+    예전에는 계획이 끝난 agent 만 장애물로 넘겼다 (`_others_xy`).  그러면
+    topo_order 의 첫 agent 는 `others=[]` 로 계획되어 **아직 출발선에 서 있는 다른
+    agent 를 통과해 버린다.**  그리고 그 자리에 서 있어야 하는 agent 는
+    `earliest_start` 때문에 비킬 수도 없고 (`_velocity_search` 의 `dk > 0 and
+    t < earliest_start` 가드), 서 있으면 `ok()` 가 거짓이라 탐색이 `(k=0, t)` 에서
+    전부 막혔다 — "한 명씩 움직이면 항상 풀린다"는 이 baseline 의 전제가 깨져
+    난이도 격자에서 58%가 no_solution 이었다.
+
+    `_others_xy` 를 고치지 않고 함수를 따로 둔 이유: 그쪽은
+    `_plan_prioritized_order` 도 쓰는데, 우선순위 계획은 "나중 agent 가 알아서
+    양보한다"는 다른 전제 위에 있다.  거기에 출발선 정지 장애물을 넣으면 그
+    baseline 의 의미까지 같이 바뀐다.
+    """
+    others = [o for o in range(n) if o != me]
+    if not others:
+        return others, np.zeros((1, 0, 2))
+    planned_len = [len(profiles[o]) for o in others if o in profiles]
+    T = (max(planned_len) - 1) if planned_len else 0
+    cols = []
+    for o in others:
+        if o in profiles:                       # 이미 움직였다 -> 실제 궤적
+            cols.append(tracks[o].pts[_pad(profiles[o], T)])
+        else:                                   # 아직 출발선 -> 그 자리에 정지
+            cols.append(np.repeat(tracks[o].pts[0][None, :], T + 1, axis=0))
+    return others, np.stack(cols, axis=1)
+
+
 # --------------------------------------------------------------------------- #
 #  Planner 1: fully sequential baseline ("just wait until the other is done")
 # --------------------------------------------------------------------------- #
 def plan_sequential(problem: Problem, tracks: List[AgentTrack]) -> Solution:
     """The lazy solution the brief warns about: strictly one agent at a time,
-    in a dependency-consistent order.  Always feasible, always slow."""
+    in a dependency-consistent order.  Slow by construction.
+
+    "한 명씩" 이라는 말대로, 움직이는 agent 는 **나머지 전원**을 정지 장애물로
+    본다 (`_sequential_others`) — 이미 목적지에 도착한 쪽도, 아직 출발선에 있는
+    쪽도 똑같이 비켜갈 대상이다.  경로가 고정이므로 우회는 불가능하고 속도만
+    조절할 수 있어서, 출발선끼리 서로 막히면 여전히 풀리지 않을 수 있다."""
     t0 = time.perf_counter()
     horizon = sum(tr.n for tr in tracks) + 400
     profiles: Dict[int, np.ndarray] = {}
     planned: List[int] = []
     cursor = 0
     for me in problem.topo_order():
-        prof = _velocity_search(problem, tracks, me, planned,
-                                _others_xy(tracks, profiles, planned),
+        others, others_xy = _sequential_others(tracks, profiles, me, problem.n)
+        prof = _velocity_search(problem, tracks, me, others, others_xy,
                                 release=0, earliest_start=cursor, horizon=horizon)
         if prof is None:
             return solution_from_K(problem, tracks, np.zeros((1, problem.n), int),

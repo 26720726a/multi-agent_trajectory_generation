@@ -1,0 +1,24 @@
+1,200 runs = 4 조건 x 100 인스턴스 x 3 seed
+  200/1200  2.0분, 남은 ~10.1분
+/home/kjs/Desktop/kuaicv/cvpr2027/Mahoi-WM/mahoi-wm/scripts/train_wm.py:78: UserWarning: enable_nested_tensor is True, but self.use_nested_tensor is False because encoder_layer.norm_first was True
+  self.enc = nn.TransformerEncoder(enc, layers)
+/home/kjs/Desktop/kuaicv/cvpr2027/Mahoi-WM/mahoi-wm/scripts/train_wm.py:78: UserWarning: enable_nested_tensor is True, but self.use_nested_tensor is False because encoder_layer.norm_first was True
+  self.enc = nn.TransformerEncoder(enc, layers)
+/home/kjs/Desktop/kuaicv/cvpr2027/Mahoi-WM/mahoi-wm/scripts/train_wm.py:78: UserWarning: enable_nested_tensor is True, but self.use_nested_tensor is False because encoder_layer.norm_first was True
+  self.enc = nn.TransformerEncoder(enc, layers)
+/home/kjs/Desktop/kuaicv/cvpr2027/Mahoi-WM/mahoi-wm/scripts/train_wm.py:78: UserWarning: enable_nested_tensor is True, but self.use_nested_tensor is False because encoder_layer.norm_first was True
+  self.enc = nn.TransformerEncoder(enc, layers)
+/home/kjs/Desktop/kuaicv/cvpr2027/Mahoi-WM/mahoi-wm/scripts/train_wm.py:78: UserWarning: enable_nested_tensor is True, but self.use_nested_tensor is False because encoder_layer.norm_first was True
+  self.enc = nn.TransformerEncoder(enc, layers)
+/home/kjs/Desktop/kuaicv/cvpr2027/Mahoi-WM/mahoi-wm/scripts/train_wm.py:78: UserWarning: enable_nested_tensor is True, but self.use_nested_tensor is False because encoder_layer.norm_first was True
+  self.enc = nn.TransformerEncoder(enc, layers)
+/home/kjs/Desktop/kuaicv/cvpr2027/Mahoi-WM/mahoi-wm/scripts/train_wm.py:78: UserWarning: enable_nested_tensor is True, but self.use_nested_tensor is False because encoder_layer.norm_first was True
+  self.enc = nn.TransformerEncoder(enc, layers)
+/home/kjs/Desktop/kuaicv/cvpr2027/Mahoi-WM/mahoi-wm/scripts/train_wm.py:78: UserWarning: enable_nested_tensor is True, but self.use_nested_tensor is False because encoder_layer.norm_first was True
+  self.enc = nn.TransformerEncoder(enc, layers)
+  400/1200  4.2분, 남은 ~8.4분
+  600/1200  7.1분, 남은 ~7.1분
+  800/1200  9.1분, 남은 ~4.5분
+  1000/1200  11.3분, 남은 ~2.3분
+  1200/1200  14.2분, 남은 ~0.0분
+완료 14.2분 -> /home/kjs/Desktop/kuaicv/cvpr2027/Mahoi-WM/mahoi-wm/bench/runs/P3-4_bench.csv

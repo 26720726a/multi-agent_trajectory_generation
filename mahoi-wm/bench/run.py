@@ -75,12 +75,13 @@ from bench.generate import (STOCHASTIC_METHODS, Axis, Instance,
                             axis_from_config, buildable, expected_count, grid)
 from mahoi import validate as V
 from mahoi.coordination import (critical_path_bound, plan_coordination,
-                                plan_sequential)
+                                plan_prioritized, plan_sequential)
 from mahoi.paths import build_prior
 from mahoi.wm.execute import WMConfig, run_wm_planner
 
 #: 실행 순서이자 CSV 안에서의 method 순서.
-ALL_METHODS = ["lower_bound", "sequential", "coordination_astar", "wm_planner"]
+ALL_METHODS = ["lower_bound", "sequential", "prioritized",
+               "coordination_astar", "wm_planner"]
 
 FIELDS = [
     "uid", "instance_seed", "n_agents", "dep_mode", "size", "n_obstacles",
@@ -318,6 +319,25 @@ def run_instance(inst: Instance, wm_cfg: Dict, methods: List[str], commit: str,
             r["note"] = clean_note(exc)
         rows.append(r)
 
+    if "prioritized" in todo:
+        # sequential 과 같은 고정 경로를 쓰되 동시 이동을 허용하고, 의존성에
+        # 맞는 우선순위 순서를 최대 24개까지 시도한다 (coordination.py).
+        # sequential 이 43% 인 격자에서 74% 라, 고정 경로 baseline 의 상한에
+        # 더 가깝다.
+        r = _blank(inst, "prioritized", lb, commit, planner_seed, timeout_s)
+        t0 = time.perf_counter()
+        try:
+            sol = plan_prioritized(problem, tracks)
+            if sol.feasible:
+                _fill(r, problem, sol, V.validate(problem, sol),
+                      time.perf_counter() - t0, lb)
+            else:
+                r["status"] = "no_solution"
+        except Exception as exc:                         # noqa: BLE001
+            r["status"] = f"error:{type(exc).__name__}"
+            r["note"] = clean_note(exc)
+        rows.append(r)
+
     if "coordination_astar" in todo:
         r = _blank(inst, "coordination_astar", lb, commit, planner_seed, timeout_s)
         if problem.n > astar_max_agents:
@@ -342,12 +362,15 @@ def run_instance(inst: Instance, wm_cfg: Dict, methods: List[str], commit: str,
         r = _blank(inst, "wm_planner", lb, commit, planner_seed, timeout_s)
         t0 = time.perf_counter()
         try:
-            res = run_wm_planner(problem, WMConfig(**wm_cfg, seed=planner_seed))
+            kw = dict(wm_cfg, seed=planner_seed)
+            if kw.get("log_modes"):
+                kw["log_uid"] = inst.uid      # 조인 키.  log_dir 은 main() 이 넣는다
+            res = run_wm_planner(problem, WMConfig(**kw))
             rep = V.validate(problem, res.traj)
             _fill(r, problem, res.traj, rep, time.perf_counter() - t0, lb)
             r["n_switches"] = res.n_switches
             r.update(wm_mode_stats(res))
-            # B6 이 분류할 재료.  "livelock" / "wall-clock" 등이 들어 있다.
+            # B6 이 분류할 재료.  "deadlock" / "wall-clock" 등이 들어 있다.
             r["note"] = clean_note(res.note)
             if not res.traj.feasible:
                 r["status"] = f"unfinished:{res.note or 'unknown'}"[:60]
@@ -757,6 +780,10 @@ def main() -> None:
 
     out = args.out or os.path.join("bench", "runs", f"{cfg.get('name', 'run')}.csv")
     os.makedirs(os.path.dirname(out) or ".", exist_ok=True)
+    if wm_cfg.get("log_modes"):
+        # 워커가 프로세스별 파일로 쓴다 (execute.py 의 _log_paths).  합치는 것은
+        # 배치가 끝난 뒤 별도 단계 — 실행 중에 합치면 부분 파일을 읽게 된다.
+        wm_cfg["log_dir"] = os.path.dirname(out) or "."
     commit = git_commit()
 
     insts = list(grid(axes))

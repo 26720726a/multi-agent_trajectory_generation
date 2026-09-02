@@ -345,9 +345,12 @@ def test_nothing_pending_when_everything_is_done():
 
 def test_only_the_missing_methods_come_back():
     """인스턴스가 행을 쓰는 도중에 죽으면 앞쪽 method 는 이미 파일에 있다."""
-    done = {(TINY.uid, "lower_bound", "0"), (TINY.uid, "sequential", "0")}
+    already = ("lower_bound", "sequential")
+    done = {(TINY.uid, m, "0") for m in already}
+    # ALL_METHODS 에서 파생시킨다 — method 를 추가할 때마다 이 테스트가
+    # 깨지는 것은 계약 위반이 아니라 목록이 늘어난 것뿐이다.
     assert pending_methods(TINY, 0, ALL_METHODS, done) == \
-        ["coordination_astar", "wm_planner"]
+        [m for m in ALL_METHODS if m not in already]
 
 
 def test_pending_respects_the_deterministic_seed_rule():
@@ -363,8 +366,10 @@ def test_a_done_key_from_another_seed_does_not_count():
 #  검산
 # --------------------------------------------------------------------------- #
 def test_rows_per_instance_multiplies_only_the_stochastic_method():
-    assert rows_per_instance(ALL_METHODS, [0]) == 4
-    assert rows_per_instance(ALL_METHODS, [0, 1, 2]) == 3 + 3
+    det = sum(1 for m in ALL_METHODS if m not in STOCHASTIC_METHODS)
+    sto = sum(1 for m in ALL_METHODS if m in STOCHASTIC_METHODS)
+    assert rows_per_instance(ALL_METHODS, [0]) == det + sto
+    assert rows_per_instance(ALL_METHODS, [0, 1, 2]) == det + sto * 3
     assert rows_per_instance(["lower_bound"], [0, 1, 2]) == 1
 
 

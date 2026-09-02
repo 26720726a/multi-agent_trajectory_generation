@@ -1,0 +1,23 @@
+.venv/
+__pycache__/
+*.pyc
+
+# 실험 결과
+bench/runs/
+
+# 학습/실험 산출물
+outputs/
+runs/
+checkpoints/
+results/
+
+# 대용량 모델
+*.pt
+*.pth
+*.ckpt
+*.onnx
+
+# 대용량 데이터
+*.npz
+*.npy
+*.pkl
