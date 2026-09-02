@@ -1,0 +1,69 @@
+{
+  "name": "P1b",
+  "_comment": "P1b: horizon 10.0 (P0-3 에서 h=4 대비 +7.6%p, 24승 1패, cpu 1.88x) + 후보 단위 로깅. sequential 은 고정 경로에서 43% 가 상한이라 (P1: 실패 57건 전부 기하적 불가) 빼고, 동시 이동을 허용하는 prioritized 를 naive 상한 baseline 으로 쓴다. coordination_astar 는 n=4 격자의 70%가 6e7 셀을 넘어 제외 (P0-1 D).",
+  "axis": {
+    "n_agents": [
+      2,
+      3,
+      4
+    ],
+    "dep_mode": [
+      "chain",
+      "fork",
+      "none"
+    ],
+    "size": [
+      8.0,
+      10.0,
+      12.0
+    ],
+    "n_obstacles": [
+      [
+        2,
+        3
+      ],
+      [
+        4,
+        6
+      ],
+      [
+        6,
+        8
+      ]
+    ],
+    "couple_prob": [
+      0.0,
+      1.0
+    ],
+    "couple_dist": [
+      0.55
+    ],
+    "instance_seeds": {
+      "range": [
+        0,
+        10
+      ]
+    },
+    "planner_seeds": {
+      "range": [
+        0,
+        3
+      ]
+    }
+  },
+  "methods": [
+    "lower_bound",
+    "prioritized",
+    "wm_planner"
+  ],
+  "wm_config": {
+    "horizon_s": 10.0,
+    "replan_s": 1.0,
+    "max_modes": 16,
+    "keep_modes": 8,
+    "k_routes": 2,
+    "seed": 0,
+    "time_budget_s": 120.0,
+    "log_modes": true
+  }
+}

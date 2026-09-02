@@ -1,0 +1,10 @@
+/home/kjs/Desktop/kuaicv/cvpr2027/MAHOI-WM_v2/learn/model.py:30: UserWarning: enable_nested_tensor is True, but self.use_nested_tensor is False because encoder_layer.norm_first was True
+  self.enc = nn.TransformerEncoder(enc, layers)
+  A1: 회귀 표본 94,949/94,949 (100.0%)  타깃 표준화 mu 2.315m sd 2.980m
+  파라미터 434,690  device cuda
+  ep   0  train 0.3669/0.7251  val 0.3248/2.228m  total 0.8839
+  ep  10  train 0.2604/0.4122  val 0.3368/2.291m  total 0.9280
+  ep  20  train 0.2282/0.3563  val 0.3568/2.307m  total 0.9560
+  ep  30  train 0.2096/0.3199  val 0.3900/2.338m  total 1.0054
+  early stop @ 31 (best 1)
+  학습 3.3분  best epoch 1  val_total 0.8772

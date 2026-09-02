@@ -1,0 +1,12 @@
+/home/kjs/Desktop/kuaicv/cvpr2027/MAHOI-WM_v2/scripts/diag_decel.py:33: ConfigWarning: [config] stall_window >= horizon_steps: stall_window=45 가 horizon 4.0s = 40 스텝 이상이라, rollout 의 정체 판정이 발동할 수 없다.  Cost.stalled 는 항상 False 가 되고 feasible 은 항상 True 가 된다 (P0-1 §G, P1b 8,100행에서 확인).  현행 값을 재현하려는 의도라면 정상이며, 해소는 S3 이다.
+  from config import CONTROLLER, PHYSICS                       # noqa: E402
+results/s3/B3_decel.csv: 전멸이 있는 3744행 중 무작위 50행 재실행
+  a_max=3.0  dv_max=0.30 m/s  min_sep=0.7  팽창 pad=0.32
+  ... 20/50, 사건 75건
+  ... 40/50, 사건 191건
+
+[B3_decel.csv]  움직이는 전멸(|v_prev|>0) 255건
+  정지까지 스텝: 중앙값 3  p90 8  최대 8
+  이웃 여유 (하한 대비): 최소 +0.2453  p10 +0.6285  중앙값 +3.0917 m   음수(침범) 0/255
+  장애물 여유 (팽창 대비): 최소 -0.0305  p10 +0.0016  중앙값 +0.4370 m   음수(침범) 24/255
+  전멸 시점 속력: 중앙값 0.600  최대 1.200 m/s

@@ -1,0 +1,25 @@
+====================================================================================================
+S3-S §S-3 재판정   판정 = safety/validate.py (여유 0.001 m)
+  에이전트 쌍 >= min_sep 0.7,  장애물/벽 >= radius 0.3
+  궤적은 **각 배치의 코드 상태**에서 다시 굴린 것, 판정은 **현재 검증기** 하나
+====================================================================================================
+
+배치                  전체행     표본    (a)CSV열 전체      (b)재실행 침범     불일치
+  baseline_S2      4860    248             0              0       0
+  A_amax3          4860    247             0              0       0
+  A2_braking       4860    248             0              0       0
+  A3_brakedist     4860    248             0              0       0
+  A4_nogeom        4860    250             0              0       0
+  B3_decel         4860    249            88             51       0
+
+불일치 총계: 0건 / 표본 1490행
+
+### 재실행에서 침범 — B3_decel (51건)
+  n2_none_72203b7a ps=0  agent_viol=0 obst_viol=1  agent_clr=3.685789 obst_clr=0.243608  first_t=64
+  n2_none_72203b7a ps=1  agent_viol=0 obst_viol=1  agent_clr=3.685806 obst_clr=0.243608  first_t=64
+  n2_none_72203b7a ps=2  agent_viol=0 obst_viol=1  agent_clr=3.685806 obst_clr=0.243608  first_t=64
+  n4_fork_c1c50b0a ps=2  agent_viol=0 obst_viol=1  agent_clr=0.974344 obst_clr=0.251933  first_t=89
+  n4_none_a48d9d9a ps=2  agent_viol=0 obst_viol=1  agent_clr=0.922018 obst_clr=0.256654  first_t=81
+  n4_chain_97f1fb98 ps=2  agent_viol=0 obst_viol=1  agent_clr=0.927042 obst_clr=0.256738  first_t=15
+  n4_fork_33bd3b01 ps=2  agent_viol=0 obst_viol=1  agent_clr=0.927042 obst_clr=0.256738  first_t=15
+  n4_none_b9b6f117 ps=2  agent_viol=0 obst_viol=1  agent_clr=0.700102 obst_clr=0.256738  first_t=15

@@ -1,0 +1,16 @@
+# S0 에서 확인된 사고 재발 방지: 원본 저장소에는 execute.cpython-312.pyc 가
+# git 에 추적되고 있었다.  소스를 고칠 때마다 diff 에 바이너리가 끼었다.
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.eggs/
+
+# 실행 산출물 — 크고 재생성 가능하다
+bench/runs/
+learn/cache/
+*.log
+
+# 환경
+.venv/
+.pytest_cache/

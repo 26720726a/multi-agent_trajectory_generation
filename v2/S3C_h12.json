@@ -1,0 +1,68 @@
+{
+  "name": "S3C_h12",
+  "_comment": "S3-C 지평선 스윕: horizon_s=12.0.  격자와 방법은 difficulty.json 과 완전히 같다 — 바뀌는 것은 이 값 하나뿐이라야 짝지은 비교가 성립한다. 물리 지문(phys_fp)이 h 마다 달라지므로 CSV 가 섞이면 도구가 막는다.",
+  "axis": {
+    "n_agents": [
+      2,
+      3,
+      4
+    ],
+    "dep_mode": [
+      "chain",
+      "fork",
+      "none"
+    ],
+    "size": [
+      8.0,
+      10.0,
+      12.0
+    ],
+    "n_obstacles": [
+      [
+        2,
+        3
+      ],
+      [
+        4,
+        6
+      ],
+      [
+        6,
+        8
+      ]
+    ],
+    "couple_prob": [
+      0.0,
+      1.0
+    ],
+    "couple_dist": [
+      0.55
+    ],
+    "instance_seeds": {
+      "range": [
+        0,
+        10
+      ]
+    },
+    "planner_seeds": {
+      "range": [
+        0,
+        3
+      ]
+    }
+  },
+  "methods": [
+    "lower_bound",
+    "sequential",
+    "wm_planner"
+  ],
+  "wm_config": {
+    "horizon_s": 12.0,
+    "replan_s": 1.0,
+    "max_modes": 16,
+    "keep_modes": 8,
+    "k_routes": 2,
+    "seed": 0,
+    "time_budget_s": 120.0
+  }
+}

@@ -1,0 +1,2 @@
+﻿scenario,n_agents,success,makespan_B,collisions_agent,collisions_obstacle,dependency_violations,deadlock,deadlock_agents,unsafe_steps,tie_break_events,total_path_length_B,yields_total,yields_per_agent
+S4,2,True,73,0,0,0,False,,0,34,19.237,34,1:34;2:0

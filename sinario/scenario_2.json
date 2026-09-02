@@ -1,0 +1,17 @@
+{
+  "params": {
+    "grid_w": 20,
+    "grid_h": 20
+  },
+  "obstacles": [
+    { "id": 1, "type": "rect", "x": 2.4,  "y": 13.8, "w": 4.5, "h": 2.9 },
+    { "id": 2, "type": "rect", "x": 0.2,  "y": 9.0,  "w": 8.0, "h": 2.0 },
+    { "id": 3, "type": "rect", "x": 11.9, "y": 9.0,  "w": 8.1, "h": 2.0 },
+    { "id": 4, "type": "rect", "x": 13.2, "y": 3.3,  "w": 4.4, "h": 2.4 }
+  ],
+  "agents": [
+    { "id": 1, "name": "a1", "start": [2.1, 2.2],   "waypoint": [16.8, 16.4], "goal": [2.6, 17.7], "route_waypoints": [], "path_override": null },
+    { "id": 2, "name": "a2", "start": [18.0, 17.7], "waypoint": [3.3, 3.4],   "goal": [17.9, 2.2], "route_waypoints": [], "path_override": null }
+  ],
+  "dependencies": []
+}

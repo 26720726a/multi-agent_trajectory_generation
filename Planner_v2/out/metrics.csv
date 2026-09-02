@@ -1,0 +1,6 @@
+﻿scenario,n_agents,success,makespan_B,collisions_agent,collisions_obstacle,dependency_violations,deadlock,deadlock_agents,unsafe_steps,tie_break_events,total_path_length_B,yields_total,yields_per_agent,makespan_baseline,total_path_length_baseline,makespan_ratio_B_over_baseline
+S1_crossing,2,True,51,0,0,0,False,,0,17,16.492,17,0:17;1:0,66,16.0,0.773
+S2_dependency,2,True,54,0,0,0,False,,0,17,16.492,17,0:17;1:0,66,16.0,0.818
+S3_chain,3,True,130,0,0,0,False,,0,85,33.553,85,1:85;2:0;3:0,129,31.627,1.008
+S4_corridor_TIEBREAK_OFF,2,False,53,20,0,0,True,0;1,38,0,26.4,0,0:0;1:0,,,
+S4_corridor_TIEBREAK_ON,2,True,73,0,0,0,False,,0,34,19.237,34,0:34;1:0,58,14.0,1.259

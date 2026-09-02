@@ -1,0 +1,12 @@
+{
+ "rows": 2672,
+ "solo_s": 13.79384607099928,
+ "solo_n": 1166,
+ "solo_keys": 1166,
+ "solo_members": 376,
+ "joint_s": 112.000151061,
+ "joint_n": 2672,
+ "wall_s": 279.1342528290006,
+ "solo_per_member": 3.101063829787234,
+ "solo_overhead_frac": 0.12315917380760112
+}

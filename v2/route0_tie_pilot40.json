@@ -1,0 +1,38 @@
+{
+ "loss_max": {
+  "label": "S7 회피 라벨",
+  "n_nondegenerate_groups": 132,
+  "p_candidate_all_route0": 0.21259469696969696,
+  "p_min_has_all_route0_OBSERVED": 0.7196969696969697,
+  "p_min_has_all_route0_H0_TIE": 0.6742313242313241,
+  "oversampling_vs_base": 3.385300668151448,
+  "oversampling_vs_H0": 1.0674333034251708,
+  "excess_over_H0": 0.04546564546564558,
+  "tie_size_mean": 6.598484848484849,
+  "tie_size_median": 5.0,
+  "group_size_mean": 16.0,
+  "mean_loss_all_route0": 1.3960760632250158,
+  "mean_loss_not_all_route0": 1.7720855793677137,
+  "nonzero_min_groups": 38,
+  "nonzero_min_OBSERVED": 0.631578947368421,
+  "nonzero_min_H0_TIE": 0.4714333911702333
+ },
+ "old_loss_max": {
+  "label": "S5-3E 라벨",
+  "n_nondegenerate_groups": 131,
+  "p_candidate_all_route0": 0.21230916030534353,
+  "p_min_has_all_route0_OBSERVED": 0.7938931297709924,
+  "p_min_has_all_route0_H0_TIE": 0.6643618679878223,
+  "oversampling_vs_base": 3.739325842696629,
+  "oversampling_vs_H0": 1.1949709458423408,
+  "excess_over_H0": 0.1295312617831701,
+  "tie_size_mean": 6.5038167938931295,
+  "tie_size_median": 5.0,
+  "group_size_mean": 16.0,
+  "mean_loss_all_route0": 1.4067331324099397,
+  "mean_loss_not_all_route0": 1.8059254697298037,
+  "nonzero_min_groups": 46,
+  "nonzero_min_OBSERVED": 0.782608695652174,
+  "nonzero_min_H0_TIE": 0.4642982621243491
+ }
+}

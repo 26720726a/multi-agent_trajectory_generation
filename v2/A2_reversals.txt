@@ -1,0 +1,15 @@
+/home/kjs/Desktop/kuaicv/cvpr2027/MAHOI-WM_v2/scripts/count_reversals.py:41: ConfigWarning: [config] stall_window >= horizon_steps: stall_window=45 가 horizon 4.0s = 40 스텝 이상이라, rollout 의 정체 판정이 발동할 수 없다.  Cost.stalled 는 항상 False 가 되고 feasible 은 항상 True 가 된다 (P0-1 §G, P1b 8,100행에서 확인).  현행 값을 재현하려는 의도라면 정상이며, 해소는 S3 이다.
+  from config import PHYSICS                                    # noqa: E402
+재실행 트리: /tmp/claude-1000/-home-kjs-Desktop-kuaicv-cvpr2027-MAHOI-WM-v2/e3942821-365c-407a-b9be-20fb01f6242f/scratchpad/v2_inf
+  a_max = inf   (기준선 물리여야 한다: inf)
+
+군 크기:  얻음 188,  양쪽성공 3714,  잃음 555
+
+기준선 궤적의 부호 반전 (100 (에이전트x스텝) 당), 각 군 최대 40개 재실행
+
+  얻음 (실패 -> 성공)                n=40   중앙값  1.012  평균  1.445  p90  3.889  최대  5.833
+  양쪽 성공                        n=40   중앙값  0.820  평균  1.267  p90  2.970  최대  4.511
+  잃음 (성공 -> 실패)                n=40   중앙값  0.923  평균  1.634  p90  4.065  최대  6.129
+
+판정: 얻음 중앙값 1.012 vs 양쪽성공 0.820  ->  추론과 **같은 방향** (얻은 쪽이 더 많이 진동했다)
+  (표본이 작고 짝지어지지 않은 비교다.  방향만 본다.)

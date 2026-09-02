@@ -1,0 +1,31 @@
+{
+  "_comment": "S2 — S1과 같은 교차 기하 + dependency 1개(red ≺ blue). blue(successor)는 자기 waypoint [5,5] 직전에서, red(predecessor)가 그 지점을 지났다는 board 이벤트를 볼 때까지 대기(event-hold, 미래 예측 없음).",
+
+  "params": {
+    "grid_w": 10,
+    "grid_h": 10,
+    "tau": 1.5,
+    "dt": 0.25,
+    "default_radius": 0.28,
+    "default_v_max": 1.0,
+    "lookahead": 0.5,
+    "safety_margin_delta": 0.0,
+    "samples_dir": 16,
+    "samples_speed": 5,
+    "progress_window": 40,
+    "progress_eps": 0.05,
+    "tiebreak_enabled": true
+  },
+
+  "obstacles": [],
+
+  "agents": [
+    { "id": 1, "name": "red",  "start": [1, 5], "goal": [9, 5] },
+    { "id": 2, "name": "blue", "start": [5, 1], "goal": [5, 9], "waypoint": [5, 5] }
+  ],
+
+  "_dependencies_comment": "predecessor 가 지나야 successor 가 자기 waypoint 를 넘어간다. successor 에는 waypoint 가 반드시 있어야 함(dependency 체크포인트).",
+  "dependencies": [
+    { "predecessor": 1, "successor": 2 }
+  ]
+}

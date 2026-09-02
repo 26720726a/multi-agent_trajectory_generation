@@ -1,0 +1,20 @@
+{
+ "loss_max": {
+  "label": "S7 회피 라벨",
+  "n_nondegenerate_groups": 6381,
+  "p_candidate_all_route0": 0.1657692231152504,
+  "p_min_has_all_route0_OBSERVED": 0.6408086506817113,
+  "p_min_has_all_route0_H0_TIE": 0.5864801240741532,
+  "oversampling_vs_base": 3.865667212762357,
+  "oversampling_vs_H0": 1.092634898230053,
+  "excess_over_H0": 0.05432852660755816,
+  "tie_size_mean": 6.449772762889829,
+  "tie_size_median": 6.0,
+  "group_size_mean": 15.986441876915821,
+  "mean_loss_all_route0": 2.3242306898880165,
+  "mean_loss_not_all_route0": 2.805244795862265,
+  "nonzero_min_groups": 2187,
+  "nonzero_min_OBSERVED": 0.38225880201188844,
+  "nonzero_min_H0_TIE": 0.2884192517080034
+ }
+}

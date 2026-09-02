@@ -1,0 +1,22 @@
+<stdin>:4: ConfigWarning: [config] stall_window >= horizon_steps: stall_window=45 가 horizon 4.0s = 40 스텝 이상이라, rollout 의 정체 판정이 발동할 수 없다.  Cost.stalled 는 항상 False 가 되고 feasible 은 항상 True 가 된다 (P0-1 §G, P1b 8,100행에서 확인).  현행 값을 재현하려는 의도라면 정상이며, 해소는 S3 이다.
+장애물 침범 88행 (obstacle_clearance < 0.299)
+  최악 5행: n2_none_72203b7a/ps2=0.2436, n2_none_72203b7a/ps1=0.2436, n2_none_72203b7a/ps0=0.2436, n4_fork_c1c50b0a/ps2=0.2519, n4_chain_97f1fb98/ps2=0.2567
+
+최악 인스턴스 n2_none_72203b7a ps=2: CSV obstacle_clearance=0.2436, status=unfinished:deadlock: no team p
+최악 침범: t=67 agent=0  장애물 거리 0.2436 m (radius 0.3, 팽창 pad 0.32)
+
+     t  |v_prev|  |v_cmd|  |dv|/dt    전멸      장애물거리   여유(radius)
+    61     1.200    1.200     0.00 False     0.4573     +0.1573   
+    62     1.200    1.200     0.00 False     0.4263     +0.1263   
+    63     1.200    1.200     0.00 False     0.3812     +0.0812   
+    64     1.200    0.900     3.00  True     0.3259     +0.0259   
+    65     0.900    0.600     3.00  True     0.2844     -0.0156 !!
+    66     0.600    0.300     3.00  True     0.2567     -0.0433 !!
+    67     0.300    0.000     3.00  True     0.2436     -0.0564 !!
+    68     0.000    0.000     0.00  True     0.2436     -0.0564 !!
+    69     0.000    0.000     0.00  True     0.2436     -0.0564 !!
+
+왜 이런 일이 생기는가:
+  전멸 = 후보 65개가 **전부 기하 필터에 걸렸다** 는 뜻이다.  그런데 감속
+  fallback 은 그 필터를 거치지 않고 v_prev 방향으로 계속 움직인다.
+  _project_safe 는 **에이전트 간**만 다루므로 장애물은 아무도 막지 않는다.

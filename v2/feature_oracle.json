@@ -1,0 +1,26 @@
+{
+ "train": {
+  "n_nondegen": 4590,
+  "oracle_optimistic": 0.0,
+  "oracle_neutral": 0.0013716942989809697,
+  "oracle_pessimistic": 0.0016770780108896718,
+  "canonical": 1.2315996618748994,
+  "frac_oracle_neutral_zero": 0.996078431372549
+ },
+ "val": {
+  "n_nondegen": 878,
+  "oracle_optimistic": 0.0,
+  "oracle_neutral": 0.0003405405082831753,
+  "oracle_pessimistic": 0.00045405401104423433,
+  "canonical": 1.1779001235229212,
+  "frac_oracle_neutral_zero": 0.9988610478359908
+ },
+ "test": {
+  "n_nondegen": 913,
+  "oracle_optimistic": 0.0,
+  "oracle_neutral": 0.00010916194460482963,
+  "oracle_pessimistic": 0.00010916194460482963,
+  "canonical": 1.011541377086453,
+  "frac_oracle_neutral_zero": 0.9989047097480832
+ }
+}

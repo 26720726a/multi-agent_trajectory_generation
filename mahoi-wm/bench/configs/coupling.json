@@ -1,0 +1,33 @@
+{
+  "name": "coupling",
+  "_comment": "waypoint 근접도 곡선. axis 가 dict 의 리스트인 예 — couple_prob=0 인 격자에서는 couple_dist 가 아무 일도 하지 않으므로 값 하나만 두고, 곡선은 couple_prob=1 격자에서만 훑는다. 곱으로 두면 좌표까지 똑같은 문제를 네 번 세게 된다.",
+  "axis": [
+    {
+      "_comment": "커플링 없음 — 곡선의 기준점.",
+      "n_agents": [2, 3],
+      "dep_mode": ["chain"],
+      "size": [10.0],
+      "n_obstacles": [[3, 5]],
+      "couple_prob": [0.0],
+      "couple_dist": [0.55],
+      "instance_seeds": {"range": [0, 10]},
+      "planner_seeds": {"range": [0, 3]}
+    },
+    {
+      "_comment": "항상 커플링 — couple_dist(m) 가 곡선의 x 축.",
+      "n_agents": [2, 3],
+      "dep_mode": ["chain"],
+      "size": [10.0],
+      "n_obstacles": [[3, 5]],
+      "couple_prob": [1.0],
+      "couple_dist": [0.35, 0.55, 0.85, 1.2],
+      "instance_seeds": {"range": [0, 10]},
+      "planner_seeds": {"range": [0, 3]}
+    }
+  ],
+  "methods": ["lower_bound", "sequential", "wm_planner"],
+  "wm_config": {
+    "horizon_s": 4.0, "replan_s": 1.0, "max_modes": 16, "keep_modes": 8,
+    "k_routes": 2, "seed": 0, "time_budget_s": 120.0
+  }
+}

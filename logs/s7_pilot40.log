@@ -1,0 +1,52 @@
+1 n2_chain_0d69eec5 0 1.9s
+2 n2_chain_f74f773a 160 8.4s
+3 n2_chain_7a6e3522 160 9.9s
+4 n2_fork_406a64e2 160 11.8s
+5 n2_fork_3d4ad0c3 320 18.3s
+6 n2_fork_af0d8309 320 19.8s
+7 n2_none_72203b7a 320 21.2s
+8 n2_none_bd98af7b 448 27.3s
+9 n2_none_6157b03f 448 28.7s
+10 n3_chain_972cd302 448 33.7s
+11 n3_chain_e2a97b58 576 46.6s
+12 n3_chain_0f70fd92 656 54.3s
+13 n3_fork_80b131d3 656 59.2s
+14 n3_fork_c3d838a1 784 72.3s
+15 n3_fork_4361e1c9 864 80.0s
+16 n3_none_2f5e1808 896 83.8s
+17 n3_none_25c86320 1024 96.8s
+18 n3_none_b27304a8 1104 103.6s
+19 n4_chain_e8800682 1296 124.9s
+20 n4_chain_84c96c1e 1456 142.0s
+21 n4_chain_ef58ebf8 1520 151.7s
+22 n4_fork_c8fdf59b 1616 166.0s
+23 n4_fork_9760cb6e 1744 181.3s
+24 n4_fork_9dd74f1e 1808 190.2s
+25 n4_none_ad356f8d 1984 207.6s
+26 n4_none_6450801a 2080 218.1s
+27 n4_none_590102e7 2144 226.2s
+28 n2_chain_aa3bf00e 2144 227.5s
+29 n2_chain_31208f29 2144 229.9s
+30 n2_chain_7c1181be 2160 233.3s
+31 n2_fork_1cbfb64f 2160 234.6s
+32 n2_fork_621a7c5b 2160 236.9s
+33 n2_fork_cd2ba200 2176 240.4s
+34 n2_none_acb7cccc 2176 241.4s
+35 n2_none_47315417 2176 243.2s
+36 n2_none_ba84dd23 2192 246.0s
+37 n3_chain_dc578e78 2256 251.1s
+38 n3_chain_a60ea716 2368 258.6s
+39 n3_chain_f142f748 2608 274.7s
+40 n3_fork_91fb5259 2672 279.1s
+{
+ "rows": 2672,
+ "solo_s": 13.79384607099928,
+ "solo_n": 1166,
+ "solo_keys": 1166,
+ "solo_members": 376,
+ "joint_s": 112.000151061,
+ "joint_n": 2672,
+ "wall_s": 279.1342528290006,
+ "solo_per_member": 3.101063829787234,
+ "solo_overhead_frac": 0.12315917380760112
+}

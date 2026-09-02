@@ -1,0 +1,68 @@
+{
+ "val": {
+  "frac_members_route0=0.0": {
+   "n": 5139,
+   "mean_regret": 1.8395744142085648
+  },
+  "frac_members_route0=0.25": {
+   "n": 240,
+   "mean_regret": 2.7619090467310934
+  },
+  "frac_members_route0=0.333": {
+   "n": 1018,
+   "mean_regret": 1.5327129119975311
+  },
+  "frac_members_route0=0.5": {
+   "n": 4407,
+   "mean_regret": 1.5649069176893382
+  },
+  "frac_members_route0=0.667": {
+   "n": 626,
+   "mean_regret": 1.5320343106307748
+  },
+  "frac_members_route0=0.75": {
+   "n": 77,
+   "mean_regret": 2.613818073703315
+  },
+  "frac_members_route0=1.0": {
+   "n": 2527,
+   "mean_regret": 1.2708705954475257
+  },
+  "selector_all_members_route0": 1.3070854861032077,
+  "P(min 후보 중 전원 route0 존재)": 0.693621867881549,
+  "P(임의 후보가 전원 route0)": 0.18032934700075928
+ },
+ "test": {
+  "frac_members_route0=0.0": {
+   "n": 4846,
+   "mean_regret": 1.917423932161752
+  },
+  "frac_members_route0=0.25": {
+   "n": 369,
+   "mean_regret": 2.485993196255918
+  },
+  "frac_members_route0=0.333": {
+   "n": 1111,
+   "mean_regret": 1.7805187473477262
+  },
+  "frac_members_route0=0.5": {
+   "n": 4702,
+   "mean_regret": 1.5260943859924765
+  },
+  "frac_members_route0=0.667": {
+   "n": 724,
+   "mean_regret": 1.537226116425336
+  },
+  "frac_members_route0=0.75": {
+   "n": 105,
+   "mean_regret": 2.514719980899218
+  },
+  "frac_members_route0=1.0": {
+   "n": 2734,
+   "mean_regret": 1.2518546747056334
+  },
+  "selector_all_members_route0": 1.3172364371396794,
+  "P(min 후보 중 전원 route0 존재)": 0.7108433734939759,
+  "P(임의 후보가 전원 route0)": 0.187496957527078
+ }
+}

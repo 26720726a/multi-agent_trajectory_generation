@@ -1,0 +1,73 @@
+{
+  "params": {
+    "grid_w": 20,
+    "grid_h": 20,
+    "tau": 1.5,
+    "dt": 0.25,
+    "default_radius": 0.28,
+    "default_v_max": 1.0,
+    "lookahead": 0.5,
+    "safety_margin_delta": 0.0,
+    "samples_dir": 16,
+    "samples_speed": 5,
+    "progress_window": 40,
+    "progress_eps": 0.05,
+    "tiebreak_enabled": true,
+    "max_steps": 4000,
+    "slow_radius": 0.5,
+    "arrive_tol": 0.08,
+    "hold_margin": 0.9,
+    "astar_inflate_margin": 0.08
+  },
+  "obstacles": [
+    {
+      "id": 1,
+      "type": "rect",
+      "x": 4.840784313725489,
+      "y": 6.626666666666667,
+      "w": 10.318431372549021,
+      "h": 10.31843137254902
+    },
+    {
+      "id": 2,
+      "type": "rect",
+      "x": 8.705882352941176,
+      "y": 1.5882352941176467,
+      "w": 5.728627450980392,
+      "h": 3.347450980392157
+    }
+  ],
+  "agents": [
+    {
+      "id": 1,
+      "name": "a1",
+      "start": [
+        2.0,
+        2.0
+      ],
+      "goal": [
+        18.0,
+        18.0
+      ],
+      "waypoint": null,
+      "route_waypoints": [],
+      "path_override": null
+    },
+    {
+      "id": 2,
+      "name": "a2",
+      "start": [
+        2.4,
+        2.0
+      ],
+      "goal": [
+        17.6,
+        18.0
+      ],
+      "waypoint": null,
+      "route_waypoints": [],
+      "path_override": null
+    }
+  ],
+  "dependencies": []
+}

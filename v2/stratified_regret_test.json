@@ -1,0 +1,89 @@
+{
+ "split": "test",
+ "n_nondegen_groups": 906,
+ "criteria": {
+  "easy_canonical_is_min": 0.6258278145695364,
+  "easy_some_all_route0_is_min": 0.7130242825607064,
+  "group_has_all_route0_candidate": 1.0,
+  "group_has_non_all_route0_candidate": 1.0
+ },
+ "layers": {
+  "easy": {
+   "n_groups": 567,
+   "frac": 0.6258278145695364,
+   "geo": 0.2723573756451855,
+   "ranking": 0.41460119126729233,
+   "canonical": 0.0,
+   "random": 1.1984395601386713,
+   "canonical_regret_max": 0.0,
+   "canonical_regret_nonzero_groups": 0
+  },
+  "hard": {
+   "n_groups": 339,
+   "frac": 0.3741721854304636,
+   "geo": 2.4021360808021903,
+   "ranking": 2.247876157835785,
+   "canonical": 2.703411475812967,
+   "random": 2.4184666160647934,
+   "canonical_regret_max": 11.718107223510742,
+   "canonical_regret_nonzero_groups": 339
+  }
+ },
+ "gate1_check_r0_layer": {
+  "n_groups": 646,
+  "canonical_regret_mean": 0.27910088217779766,
+  "canonical_regret_max": 8.095256805419922,
+  "nonzero_groups": 79
+ },
+ "bootstrap_hard": {
+  "geo-canonical": {
+   "n": 339,
+   "diff": -0.3012753950107766,
+   "lo": -0.4994206261557354,
+   "hi": -0.1099257319272774,
+   "sig": true
+  },
+  "geo-random": {
+   "n": 339,
+   "diff": -0.016330535262603325,
+   "lo": -0.23653307235978302,
+   "hi": 0.2002263989048161,
+   "sig": false
+  },
+  "ranking-canonical": {
+   "n": 339,
+   "diff": -0.45553531797718155,
+   "lo": -0.6772601532203126,
+   "hi": -0.23934016505635422,
+   "sig": true
+  },
+  "ranking-random": {
+   "n": 339,
+   "diff": -0.1705904582290083,
+   "lo": -0.3932204171423155,
+   "hi": 0.05495663001050934,
+   "sig": false
+  },
+  "geo-ranking": {
+   "n": 339,
+   "diff": 0.154259922966405,
+   "lo": -0.06619079195259683,
+   "hi": 0.37286434221798453,
+   "sig": false
+  }
+ },
+ "mirror_check": {
+  "note": "\uce35 \uc815\uc758\ub97c \ubaa8\ub378 \uae30\uc900\uc73c\ub85c \ub4a4\uc9d1\uc740 \ub300\uc870 \u2014 \uac8c\uc774\ud2b8 2 \uc758 \uc6b0\uc138\uac00 \uce35\ud654\uac00 \ub9cc\ub4e0 \uac83\uc778\uc9c0 \ubcf4\uae30 \uc704\ud55c \uac83",
+  "hard_model_frac": 0.3984547461368653,
+  "geo": 2.6835201201738577,
+  "canonical": 2.201244961862501,
+  "random": 2.397733737476598,
+  "canonical_minus_geo": {
+   "n": 361,
+   "diff": -0.4822751583113565,
+   "lo": -0.692943396756472,
+   "hi": -0.287566141429979,
+   "sig": true
+  }
+ }
+}

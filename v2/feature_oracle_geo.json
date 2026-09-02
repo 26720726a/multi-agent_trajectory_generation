@@ -1,0 +1,78 @@
+{
+ "onehot": {
+  "train": {
+   "split": "train",
+   "n_groups": 5937,
+   "n_nondegen": 4590,
+   "oracle_optimistic": 0.0,
+   "oracle_neutral": 0.0013716942669259697,
+   "oracle_pessimistic": 0.0016770778852870003,
+   "frac_oracle_neutral_zero": 0.996078431372549,
+   "classes_per_group_mean": 15.71399696816574,
+   "candidates_per_group_mean": 15.992757284823986,
+   "frac_groups_fully_separated": 0.7914771770254337
+  },
+  "val": {
+   "split": "val",
+   "n_groups": 1271,
+   "n_nondegen": 878,
+   "oracle_optimistic": 0.0,
+   "oracle_neutral": 0.00034054051363386706,
+   "oracle_pessimistic": 0.00045405399554954303,
+   "frac_oracle_neutral_zero": 0.9988610478359908,
+   "classes_per_group_mean": 15.683713611329662,
+   "candidates_per_group_mean": 15.972462627852085,
+   "frac_groups_fully_separated": 0.8009441384736428
+  },
+  "test": {
+   "split": "test",
+   "n_groups": 1274,
+   "n_nondegen": 913,
+   "oracle_optimistic": 0.0,
+   "oracle_neutral": 0.00010916202248513764,
+   "oracle_pessimistic": 0.00010916202248513764,
+   "frac_oracle_neutral_zero": 0.9989047097480832,
+   "classes_per_group_mean": 15.627943485086343,
+   "candidates_per_group_mean": 15.970957613814758,
+   "frac_groups_fully_separated": 0.7613814756671899
+  }
+ },
+ "geom": {
+  "train": {
+   "split": "train",
+   "n_groups": 5937,
+   "n_nondegen": 4590,
+   "oracle_optimistic": 0.0,
+   "oracle_neutral": 0.0013716942669259697,
+   "oracle_pessimistic": 0.0016770778852870003,
+   "frac_oracle_neutral_zero": 0.996078431372549,
+   "classes_per_group_mean": 15.71399696816574,
+   "candidates_per_group_mean": 15.992757284823986,
+   "frac_groups_fully_separated": 0.7914771770254337
+  },
+  "val": {
+   "split": "val",
+   "n_groups": 1271,
+   "n_nondegen": 878,
+   "oracle_optimistic": 0.0,
+   "oracle_neutral": 0.00034054051363386706,
+   "oracle_pessimistic": 0.00045405399554954303,
+   "frac_oracle_neutral_zero": 0.9988610478359908,
+   "classes_per_group_mean": 15.683713611329662,
+   "candidates_per_group_mean": 15.972462627852085,
+   "frac_groups_fully_separated": 0.8009441384736428
+  },
+  "test": {
+   "split": "test",
+   "n_groups": 1274,
+   "n_nondegen": 913,
+   "oracle_optimistic": 0.0,
+   "oracle_neutral": 0.00010916202248513764,
+   "oracle_pessimistic": 0.00010916202248513764,
+   "frac_oracle_neutral_zero": 0.9989047097480832,
+   "classes_per_group_mean": 15.627943485086343,
+   "candidates_per_group_mean": 15.970957613814758,
+   "frac_groups_fully_separated": 0.7613814756671899
+  }
+ }
+}

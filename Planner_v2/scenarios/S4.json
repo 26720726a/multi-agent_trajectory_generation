@@ -1,0 +1,34 @@
+{
+  "_comment": "S4 — 좁은 통로 정면 대치. tiebreak_enabled 를 false 로 바꿔서 다시 --run 해보면(코드 수정 없이!) reciprocity 만으로는 못 풀려 deadlock/livelock 이 나는 것을 볼 수 있다.",
+
+  "params": {
+    "grid_w": 8,
+    "grid_h": 2,
+    "tau": 1.5,
+    "dt": 0.25,
+    "default_radius": 0.28,
+    "default_v_max": 1.0,
+    "lookahead": 0.5,
+    "safety_margin_delta": 0.0,
+    "samples_dir": 16,
+    "samples_speed": 5,
+    "progress_window": 40,
+    "progress_eps": 0.05,
+    "tiebreak_enabled": true,
+    "astar_inflate_margin": 0.03
+  },
+  "_params_comment": "astar_inflate_margin 을 기본값(0.08)보다 줄였다 — 통로가 좁아 기본값으론 A* 계획용 grid에서 통로 안쪽이 완전히 막힐 수 있다(RVO 런타임 회피는 실제 반지름만 쓰므로 별개). safety_margin_delta 는 기본값(0)대로 뒀다 — 이 통로 폭에선 꺼둔 상태가 tie-break 대피 동작과 더 잘 맞는다; 여유를 더 두고 싶으면 값을 조금씩만 올려보며 --run 으로 확인할 것(너무 키우면 오히려 통로가 더 빡빡해져 실패할 수 있다).",
+
+  "_obstacles_comment": "위·아래 벽 사이 유효 통행폭 = (grid_h - h_top - h_bottom) - 2*radius = 1.5 - 0.56 = 0.94 m. 둘이 나란히 스쳐 지나갈 순 있지만 열린 공간보단 훨씬 빡빡하다.",
+  "obstacles": [
+    { "id": 1, "type": "rect", "x": 1.0, "y": 0.0,  "w": 6.0, "h": 0.25 },
+    { "id": 2, "type": "rect", "x": 1.0, "y": 1.75, "w": 6.0, "h": 0.25 }
+  ],
+
+  "agents": [
+    { "id": 1, "name": "red",  "start": [0.5, 1.0], "goal": [7.5, 1.0] },
+    { "id": 2, "name": "blue", "start": [7.5, 1.0], "goal": [0.5, 1.0] }
+  ],
+
+  "dependencies": []
+}

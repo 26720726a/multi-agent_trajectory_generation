@@ -1,0 +1,28 @@
+{
+  "_comment": "S1 — 중앙 교차, dependency 없음. 회피가 창발하는지 확인.",
+
+  "params": {
+    "grid_w": 10,
+    "grid_h": 10,
+    "tau": 1.5,
+    "dt": 0.25,
+    "default_radius": 0.28,
+    "default_v_max": 1.0,
+    "lookahead": 0.5,
+    "safety_margin_delta": 0.0,
+    "samples_dir": 16,
+    "samples_speed": 5,
+    "progress_window": 40,
+    "progress_eps": 0.05,
+    "tiebreak_enabled": true
+  },
+
+  "obstacles": [],
+
+  "agents": [
+    { "id": 1, "name": "red",  "start": [1, 5], "goal": [9, 5] },
+    { "id": 2, "name": "blue", "start": [5, 1], "goal": [5, 9] }
+  ],
+
+  "dependencies": []
+}

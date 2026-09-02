@@ -1,0 +1,12 @@
+baseline_S2    status=invalid    0   valid=False  584   그중 status!=invalid  584   obst_clr 최소 0.3200  agent_clr 최소 0.7001
+A_amax3        status=invalid    0   valid=False  946   그중 status!=invalid  946   obst_clr 최소 0.3200  agent_clr 최소 0.7001
+A2_braking     status=invalid    0   valid=False  958   그중 status!=invalid  958   obst_clr 최소 0.3200  agent_clr 최소 0.7001
+A3_brakedist   status=invalid    0   valid=False  952   그중 status!=invalid  952   obst_clr 최소 0.3200  agent_clr 최소 0.7001
+A4_nogeom      status=invalid    0   valid=False  957   그중 status!=invalid  957   obst_clr 최소 0.3200  agent_clr 최소 0.7001
+B3_decel       status=invalid    0   valid=False 2048   그중 status!=invalid 2048   obst_clr 최소 0.2436  agent_clr 최소 0.7001
+
+B3 에서 valid=False 인 2048행의 status 분포:
+    unfinished:deadlock: no team progr   2048
+
+B3 에서 obstacle_clearance < robot_radius(0.30) 인 행: 134
+                        < 0.30 - 1e-3 (validate 기준): 88

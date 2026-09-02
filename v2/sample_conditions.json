@@ -1,0 +1,184 @@
+{
+ "source": "learn/cache/s6_4.npz",
+ "rows": 135597,
+ "groups": 8482,
+ "active_rows_frac": 0.26625957801426287,
+ "active_groups": 2258,
+ "nondegen_groups": 6381,
+ "conditions": {
+  "S1": {
+   "train": {
+    "rows": 94949,
+    "groups": 5937,
+    "uids": 608,
+    "loss_pos_frac": 0.5263667863800566,
+    "loss_mean": 2.315185308456421,
+    "loss_p50": 0.29988589882850647,
+    "stalled_frac": 0.12667853268596826,
+    "active_group_frac": 0.29726484744441756,
+    "nondegen_group_frac": 0.7731519026003434,
+    "k_dist": {
+     "2": 64650,
+     "3": 23883,
+     "4": 6416
+    }
+   },
+   "val": {
+    "rows": 20301,
+    "groups": 1271,
+    "uids": 265,
+    "loss_pos_frac": 0.41263977143983055,
+    "loss_mean": 1.5444923639297485,
+    "loss_p50": 0.0,
+    "stalled_frac": 0.10905866706073593,
+    "active_group_frac": 0.18521255110585685,
+    "nondegen_group_frac": 0.6912959952711689,
+    "k_dist": {
+     "2": 16477,
+     "3": 3216,
+     "4": 608
+    }
+   },
+   "test": {
+    "rows": 20347,
+    "groups": 1274,
+    "uids": 253,
+    "loss_pos_frac": 0.42679510492947365,
+    "loss_mean": 1.647277593612671,
+    "loss_p50": 0.0,
+    "stalled_frac": 0.13997149456922398,
+    "active_group_frac": 0.2024377058042955,
+    "nondegen_group_frac": 0.7171081731950656,
+    "k_dist": {
+     "2": 16011,
+     "3": 3568,
+     "4": 768
+    }
+   },
+   "uid_overlap": {
+    "train&val": 0,
+    "train&test": 0,
+    "val&test": 0
+   },
+   "dropped_rows": 0,
+   "name": "S1"
+  },
+  "S2": {
+   "train": {
+    "rows": 28225,
+    "groups": 1765,
+    "uids": 406,
+    "loss_pos_frac": 1.0,
+    "loss_mean": 5.031278133392334,
+    "loss_p50": 4.798059940338135,
+    "stalled_frac": 0.15263064658990258,
+    "active_group_frac": 1.0,
+    "nondegen_group_frac": 0.9716563330380869,
+    "k_dist": {
+     "2": 17075,
+     "3": 8414,
+     "4": 2736
+    }
+   },
+   "val": {
+    "rows": 3760,
+    "groups": 235,
+    "uids": 88,
+    "loss_pos_frac": 1.0,
+    "loss_mean": 4.201868534088135,
+    "loss_p50": 4.042468547821045,
+    "stalled_frac": 0.13377659574468084,
+    "active_group_frac": 1.0,
+    "nondegen_group_frac": 0.9531914893617022,
+    "k_dist": {
+     "2": 2736,
+     "3": 848,
+     "4": 176
+    }
+   },
+   "test": {
+    "rows": 4119,
+    "groups": 258,
+    "uids": 91,
+    "loss_pos_frac": 1.0,
+    "loss_mean": 4.1993088722229,
+    "loss_p50": 3.93510365486145,
+    "stalled_frac": 0.2131585336246662,
+    "active_group_frac": 1.0,
+    "nondegen_group_frac": 0.9611556202961884,
+    "k_dist": {
+     "2": 2759,
+     "3": 912,
+     "4": 448
+    }
+   },
+   "uid_overlap": {
+    "train&val": 0,
+    "train&test": 0,
+    "val&test": 0
+   },
+   "dropped_rows": 99493,
+   "name": "S2",
+   "cache": "learn/cache/s8_S2.npz"
+  },
+  "S3": {
+   "train": {
+    "rows": 28225,
+    "groups": 1765,
+    "uids": 406,
+    "loss_pos_frac": 1.0,
+    "loss_mean": 5.031278133392334,
+    "loss_p50": 4.798059940338135,
+    "stalled_frac": 0.15263064658990258,
+    "active_group_frac": 1.0,
+    "nondegen_group_frac": 0.9716563330380869,
+    "k_dist": {
+     "2": 17075,
+     "3": 8414,
+     "4": 2736
+    }
+   },
+   "val": {
+    "rows": 20301,
+    "groups": 1271,
+    "uids": 265,
+    "loss_pos_frac": 0.41263977143983055,
+    "loss_mean": 1.5444923639297485,
+    "loss_p50": 0.0,
+    "stalled_frac": 0.10905866706073593,
+    "active_group_frac": 0.18521255110585685,
+    "nondegen_group_frac": 0.6912959952711689,
+    "k_dist": {
+     "2": 16477,
+     "3": 3216,
+     "4": 608
+    }
+   },
+   "test": {
+    "rows": 20347,
+    "groups": 1274,
+    "uids": 253,
+    "loss_pos_frac": 0.42679510492947365,
+    "loss_mean": 1.647277593612671,
+    "loss_p50": 0.0,
+    "stalled_frac": 0.13997149456922398,
+    "active_group_frac": 0.2024377058042955,
+    "nondegen_group_frac": 0.7171081731950656,
+    "k_dist": {
+     "2": 16011,
+     "3": 3568,
+     "4": 768
+    }
+   },
+   "uid_overlap": {
+    "train&val": 0,
+    "train&test": 0,
+    "val&test": 0
+   },
+   "dropped_rows": 66724,
+   "name": "S3",
+   "cache": "learn/cache/s8_S3.npz"
+  }
+ },
+ "S2_S3_train_identical": true
+}

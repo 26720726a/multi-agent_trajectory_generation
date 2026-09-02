@@ -1,0 +1,14 @@
+scenario     bound seeds -> team time (s)               mean    sd  worst gap  valid
+----------------------------------------------------------------------------------------
+crossing2     14.3  18.4  18.5  18.1                    18.3  0.17      0.922     OK
+  [corridor2] 13/16 futures feasible; fastest 18.9s, chosen 18.9s (same)
+corridor2     17.4  19.2  19.5  19.3                    19.3  0.12      0.928     OK
+deadlock2     14.0  17.8  18.1  18.0                    18.0  0.12      0.920     OK
+  [chain3] 2/16 futures feasible; fastest 25.2s, chosen 26.8s (traded for soft terms)
+chain3        17.9  21.4  20.5  26.0                    22.6  2.41      0.817   FAIL
+fork3         18.1  21.5  22.8  22.1                    22.1  0.53      0.747     OK
+
+1 FAILURE(S):
+  chain3 seed=2: B: does not end at Goal
+  chain3 seed=2: C: does not end at Goal
+  chain3 seed=2: B: never reaches its Waypoint

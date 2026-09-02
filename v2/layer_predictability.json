@@ -1,0 +1,18 @@
+{
+ "val": {
+  "n": 876,
+  "hard_frac": 0.4018264840182648,
+  "auc_model_margin": 0.4517750260235947,
+  "auc_canon_pstall": 0.49242062803608605,
+  "auc_k": 0.5028625954198473,
+  "auc_group_spread_ORACLE": 0.6785950511797363
+ },
+ "test": {
+  "n": 906,
+  "hard_frac": 0.3741721854304636,
+  "auc_model_margin": 0.5172126755214268,
+  "auc_canon_pstall": 0.5034727099623855,
+  "auc_k": 0.5008818342151675,
+  "auc_group_spread_ORACLE": 0.6147164863979023
+ }
+}

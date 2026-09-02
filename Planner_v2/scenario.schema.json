@@ -1,0 +1,94 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "scenario",
+  "description": "방법 B 시뮬레이터 장면 설정 (config.py 가 읽음). '_'로 시작하는 키는 주석용이며 무시된다.",
+  "type": "object",
+  "properties": {
+    "params": {
+      "type": "object",
+      "properties": {
+        "grid_w": { "type": "number", "exclusiveMinimum": 0 },
+        "grid_h": { "type": "number", "exclusiveMinimum": 0 },
+        "tau": { "type": "number", "exclusiveMinimum": 0 },
+        "dt": { "type": "number", "exclusiveMinimum": 0 },
+        "default_radius": { "type": "number", "exclusiveMinimum": 0 },
+        "default_v_max": { "type": "number", "exclusiveMinimum": 0 },
+        "lookahead": { "type": "number", "exclusiveMinimum": 0 },
+        "safety_margin_delta": { "type": "number", "minimum": 0 },
+        "samples_dir": { "type": "integer", "exclusiveMinimum": 0 },
+        "samples_speed": { "type": "integer", "exclusiveMinimum": 0 },
+        "progress_window": { "type": "integer", "exclusiveMinimum": 0 },
+        "progress_eps": { "type": "number", "exclusiveMinimum": 0 },
+        "tiebreak_enabled": { "type": "boolean" },
+        "max_steps": { "type": "integer", "exclusiveMinimum": 0 },
+        "slow_radius": { "type": "number", "exclusiveMinimum": 0 },
+        "arrive_tol": { "type": "number", "exclusiveMinimum": 0 },
+        "hold_margin": { "type": "number", "exclusiveMinimum": 0 },
+        "astar_inflate_margin": { "type": "number", "minimum": 0 }
+      }
+    },
+    "obstacles": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "type"],
+        "properties": {
+          "id": { "type": "integer", "exclusiveMinimum": 0 },
+          "type": { "enum": ["rect", "circle"] },
+          "x": { "type": "number" }, "y": { "type": "number" },
+          "w": { "type": "number", "exclusiveMinimum": 0 },
+          "h": { "type": "number", "exclusiveMinimum": 0 },
+          "cx": { "type": "number" }, "cy": { "type": "number" },
+          "r": { "type": "number", "exclusiveMinimum": 0 }
+        }
+      }
+    },
+    "agents": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "start", "goal"],
+        "properties": {
+          "id": { "type": "integer", "exclusiveMinimum": 0 },
+          "name": { "type": "string" },
+          "start": { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 2 },
+          "goal": { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 2 },
+          "waypoint": {
+            "oneOf": [
+              { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 2 },
+              { "type": "null" }
+            ]
+          },
+          "radius": { "type": "number", "exclusiveMinimum": 0 },
+          "v_max": { "type": "number", "exclusiveMinimum": 0 },
+          "route_waypoints": {
+            "type": "array",
+            "items": { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 2 }
+          },
+          "path_override": {
+            "oneOf": [
+              {
+                "type": "array", "minItems": 2,
+                "items": { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 2 }
+              },
+              { "type": "null" }
+            ]
+          }
+        }
+      }
+    },
+    "dependencies": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["predecessor", "successor"],
+        "properties": {
+          "predecessor": { "type": "integer" },
+          "successor": { "type": "integer" }
+        }
+      }
+    }
+  },
+  "required": ["agents"]
+}

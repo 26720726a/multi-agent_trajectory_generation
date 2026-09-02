@@ -1,0 +1,34 @@
+{
+  "_comment": "S3 — 3 에이전트 체인: 1≺2, {1,2}≺3. 분산 확장 확인 — dependency 가 여러 개 얽혀도(합성 hold) 같은 루프가 그대로 확장된다.",
+
+  "params": {
+    "grid_w": 10,
+    "grid_h": 10,
+    "tau": 1.5,
+    "dt": 0.25,
+    "default_radius": 0.28,
+    "default_v_max": 1.0,
+    "lookahead": 0.5,
+    "safety_margin_delta": 0.0,
+    "samples_dir": 16,
+    "samples_speed": 5,
+    "progress_window": 40,
+    "progress_eps": 0.05,
+    "tiebreak_enabled": true
+  },
+
+  "obstacles": [],
+
+  "agents": [
+    { "id": 1, "name": "a1", "start": [1, 1],   "goal": [9, 9] },
+    { "id": 2, "name": "a2", "start": [9, 1],   "goal": [1, 9], "waypoint": [5, 5] },
+    { "id": 3, "name": "a3", "start": [5, 0.5], "goal": [5, 9.5], "waypoint": [5, 5] }
+  ],
+
+  "_dependencies_comment": "a2 는 a1 이 [5,5] 를 지날 때까지, a3 는 a1 과 a2 둘 다 [5,5] 를 지날 때까지 대기(같은 waypoint 하나가 두 dependency 를 동시에 표현).",
+  "dependencies": [
+    { "predecessor": 1, "successor": 2 },
+    { "predecessor": 1, "successor": 3 },
+    { "predecessor": 2, "successor": 3 }
+  ]
+}
